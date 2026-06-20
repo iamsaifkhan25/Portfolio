@@ -38,6 +38,7 @@ export default function RootLayout({
       lang="en"
       className={`${plusJakartaSans.variable} h-full antialiased dark`}
       style={{ colorScheme: "dark" }}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans text-slate-100 bg-[#030712] relative">
         {/* Glowing Background Orbs */}
