@@ -8,12 +8,12 @@ export default function ProjectsPage() {
       title: "casfrosting.com",
       subtitle: "Commercial UI Assets & CSS Presets Platform",
       description:
-        "A live commercial web application engineered and deployed end-to-end utilizing advanced agentic AI workflows. The platform operates on a premium monetization model, selling high-quality paid CSS presets directly to developers, validating its real-world user demand, commercial viability, and product-market fit.",
-      techStack: ["Next.js", "React 19", "Tailwind CSS", "Stripe Checkout", "Agentic Engineering"],
+        "A live commercial web application engineered and deployed end-to-end utilizing advanced agentic AI workflows. The platform operates on a premium monetization model, selling high-quality paid CSS presets directly to developers, validating its real-world user demand, commercial viability, and product-market fit. Premium checkout transactions are processed securely via integration with Razorpay.",
+      techStack: ["Next.js", "React 19", "Tailwind CSS", "Razorpay Checkout", "Agentic Engineering"],
       url: "https://casfrosting.com",
       highlights: [
         "Monetized via premium, paid developer-focused CSS styling packages",
-        "Direct proof of product validation and commercial transaction safety",
+        "Direct integration of secure Razorpay Order & Webhook verification APIs",
         "Engineered with modular, high-speed cached code for optimal conversions",
       ],
     },
@@ -21,13 +21,13 @@ export default function ProjectsPage() {
       title: "openstudydeck.com",
       subtitle: "Full-Stack Learning & Study Platform (Community Funded)",
       description:
-        "A full-stack learning companion application focusing on streamlined digital studying. Features robust spaced-repetition card decks and study metrics. It implements an active community donation integration ('Buy Me a Coffee') to self-fund server infrastructure, demonstrating user-first design and community support.",
-      techStack: ["React", "TypeScript", "Node.js API", "Community Donation Flows", "User Analytics"],
+        "A full-stack learning companion application focusing on streamlined digital studying. Features robust spaced-repetition card decks and study metrics. It implements a custom-integrated Razorpay coffee donation flow powered by Cloudflare Pages Serverless Functions to self-fund server infrastructure, demonstrating user-first design.",
+      techStack: ["React", "TypeScript", "Vite", "Razorpay Donations", "Cloudflare Pages Functions"],
       url: "https://openstudydeck.com",
       highlights: [
-        "Sustained via community donations ('Buy Me a Coffee') to offset operations",
+        "Sustained via custom-built Razorpay coffee donation workflows to offset operations",
         "User-first learning tool validating clean full-stack architectural design",
-        "Integrated client deck customization with minimal storage footings",
+        "Cloudflare Pages Functions serverless backend for secure transaction orders",
       ],
     },
   ];
