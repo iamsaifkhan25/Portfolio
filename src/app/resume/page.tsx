@@ -81,7 +81,7 @@ export default function ResumePage() {
             {experiences.map((exp, index) => (
               <div key={index} className="relative">
                 {/* Timeline node */}
-                <div className="absolute -left-[31px] top-1.5 h-4 w-4 rounded-full bg-[#030712] border-2 border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                <div className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full bg-[#030712] border-2 border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
 
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
