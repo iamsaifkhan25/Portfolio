@@ -112,7 +112,7 @@ export default function Navbar() {
             : "opacity-0 scale-y-95 -translate-y-2 pointer-events-none"
         }`}
       >
-        <div className="glass-panel rounded-3xl p-4 flex flex-col gap-2 mt-2">
+        <div className="glass-panel bg-slate-950/90 backdrop-blur-xl rounded-3xl p-4 flex flex-col gap-2 mt-2 border border-white/10 shadow-2xl">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const active = isActive(link.href);
