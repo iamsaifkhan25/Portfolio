@@ -1,5 +1,5 @@
 import React from "react";
-import { Briefcase, GraduationCap, Download, FileText, CheckCircle2 } from "lucide-react";
+import { Briefcase, GraduationCap, Download, FileText, CheckCircle2, Sparkles } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 
 export default function ResumePage() {
@@ -48,7 +48,7 @@ export default function ResumePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-10 md:gap-14 animate-fadeIn">
+    <div className="flex flex-col gap-10 md:gap-14 animate-fade-in">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-white/5">
         <div>
@@ -68,6 +68,31 @@ export default function ResumePage() {
           Download PDF Resume
         </a>
       </div>
+
+      {/* The Pivot: bridges service/ops background to the AI-driven dev work on /projects */}
+      <GlassCard
+        className="border border-indigo-500/20 bg-indigo-950/10 shadow-[0_0_30px_rgba(99,102,241,0.05)]"
+        hoverEffect={false}
+      >
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-indigo-400">
+            <Sparkles size={18} className="shrink-0" />
+            <h2 className="text-sm font-bold tracking-wide uppercase">The Pivot</h2>
+          </div>
+          <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light">
+            Nearly a decade in B2B operations, CRM systems, and high-pressure client service built a
+            foundation in problem-solving, process discipline, and working directly with people under
+            pressure. That foundation is what now drives a self-directed pivot into software engineering:
+            leveraging agentic AI development workflows to design, build, and ship full-stack products
+            end-to-end, from checkout flows to serverless backends. The experience below is the traditional
+            career history; the{" "}
+            <a href="/projects" className="text-indigo-300 underline decoration-indigo-500/40 hover:decoration-indigo-300 transition-colors">
+              Projects page
+            </a>{" "}
+            is the technical proof of that pivot in production.
+          </p>
+        </div>
+      </GlassCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Experience Timeline (Left 2 cols) */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Briefcase, FileText, Mail, Home } from "lucide-react";
@@ -8,6 +8,30 @@ import { Menu, X, Briefcase, FileText, Mail, Home } from "lucide-react";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Close on outside click / Escape for keyboard and pointer users
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
 
   const navLinks = [
     { name: "Home", href: "/", icon: Home },
@@ -24,7 +48,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-4 z-50 mx-auto w-[92%] max-w-5xl">
+    <nav ref={navRef} className="sticky top-4 z-50 mx-auto w-[92%] max-w-5xl">
       <div className="glass-panel rounded-full px-6 py-3 md:py-4 flex items-center justify-between transition-all duration-300">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-2">
@@ -65,7 +89,7 @@ export default function Navbar() {
               href="https://github.com/iamsaifkhan25"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-indigo-300 transition-colors duration-200"
+              className="p-2 -m-2 rounded-full hover:text-indigo-300 hover:bg-white/5 transition-colors duration-200"
               aria-label="GitHub Profile"
             >
               <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -76,7 +100,7 @@ export default function Navbar() {
               href="https://www.linkedin.com/in/iamsaifkhan25"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-indigo-300 transition-colors duration-200"
+              className="p-2 -m-2 rounded-full hover:text-indigo-300 hover:bg-white/5 transition-colors duration-200"
               aria-label="LinkedIn Profile"
             >
               <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -96,8 +120,10 @@ export default function Navbar() {
         <div className="md:hidden">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/3 hover:bg-white/10 text-slate-300 hover:text-white transition-all duration-300"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/8 bg-white/3 hover:bg-white/10 text-slate-300 hover:text-white transition-all duration-300 cursor-pointer"
             aria-label="Toggle navigation menu"
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav-drawer"
           >
             {isOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -106,6 +132,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer (Glassmorphic Dropdown) */}
       <div
+        id="mobile-nav-drawer"
+        aria-hidden={!isOpen}
         className={`md:hidden absolute top-16 left-0 right-0 z-40 transition-all duration-300 origin-top ${
           isOpen
             ? "opacity-100 scale-y-100 translate-y-0"

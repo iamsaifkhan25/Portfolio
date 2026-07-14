@@ -5,7 +5,7 @@ import GlassCard from "@/components/GlassCard";
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-16 md:gap-24 animate-fadeIn">
+    <div className="flex flex-col gap-16 md:gap-24 animate-fade-in">
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center gap-6 md:gap-8 pt-6 md:pt-12">
         {/* Subtle AI badge */}

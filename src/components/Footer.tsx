@@ -36,7 +36,7 @@ export default function Footer() {
               href="https://github.com/iamsaifkhan25"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-400 hover:text-white transition-colors duration-200"
+              className="p-2 -m-2 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-colors duration-200"
               aria-label="GitHub Profile"
             >
               <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -47,7 +47,7 @@ export default function Footer() {
               href="https://www.linkedin.com/in/iamsaifkhan25"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-slate-400 hover:text-white transition-colors duration-200"
+              className="p-2 -m-2 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-colors duration-200"
               aria-label="LinkedIn Profile"
             >
               <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">

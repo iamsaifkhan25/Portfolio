@@ -7,10 +7,12 @@ import GlassCard from "@/components/GlassCard";
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
+      setErrorMessage("Please fill out all fields before sending.");
       setStatus("error");
       return;
     }
@@ -29,16 +31,18 @@ export default function ContactPage() {
         setStatus("success");
         setFormData({ name: "", email: "", message: "" });
       } else {
+        setErrorMessage("Something went wrong sending your message. Please try again or email me directly.");
         setStatus("error");
       }
     } catch (error) {
       console.error("[CONTACT_SUBMIT_ERROR]:", error);
+      setErrorMessage("Something went wrong sending your message. Please try again or email me directly.");
       setStatus("error");
     }
   };
 
   return (
-    <div className="flex flex-col gap-10 md:gap-14 animate-fadeIn">
+    <div className="flex flex-col gap-10 md:gap-14 animate-fade-in">
       {/* Header Banner */}
       <div className="border-b border-white/5 pb-6">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
@@ -159,18 +163,20 @@ export default function ContactPage() {
               </div>
 
               {/* Status Alert */}
-              {status === "success" && (
-                <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-sm">
-                  <CheckCircle2 size={16} className="shrink-0" />
-                  <span>Message sent! I&apos;ll get back to you as soon as possible.</span>
-                </div>
-              )}
-              {status === "error" && (
-                <div className="flex items-center gap-2 text-rose-400 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3 text-sm">
-                  <AlertCircle size={16} className="shrink-0" />
-                  <span>Please fill out all fields before sending.</span>
-                </div>
-              )}
+              <div aria-live="polite" role="status">
+                {status === "success" && (
+                  <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-sm">
+                    <CheckCircle2 size={16} className="shrink-0" />
+                    <span>Message sent! I&apos;ll get back to you as soon as possible.</span>
+                  </div>
+                )}
+                {status === "error" && (
+                  <div className="flex items-center gap-2 text-rose-400 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3 text-sm">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+              </div>
 
               {/* Submit Button */}
               <button

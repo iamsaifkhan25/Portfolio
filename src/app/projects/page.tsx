@@ -33,7 +33,7 @@ export default function ProjectsPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-10 md:gap-14 animate-fadeIn">
+    <div className="flex flex-col gap-10 md:gap-14 animate-fade-in">
       {/* Page Header */}
       <div className="border-b border-white/5 pb-6">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
@@ -93,7 +93,8 @@ export default function ProjectsPage() {
                   href={project.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/3 hover:bg-indigo-500/25 hover:border-indigo-500/30 hover:text-indigo-300 text-slate-400 transition-all duration-300"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/3 hover:bg-indigo-500/25 hover:border-indigo-500/30 hover:text-indigo-300 text-slate-400 transition-all duration-300"
+                  aria-label={`Visit ${project.title} (opens in a new tab)`}
                   title="Visit Website"
                 >
                   <ExternalLink size={14} />

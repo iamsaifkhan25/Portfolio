@@ -11,10 +11,18 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
+const siteUrl = "https://iamsaifkhan.com";
+const title = "Saif Khan | AI-Driven Full-Stack Developer & Product Builder";
+const description =
+  "Leveraging advanced agentic AI workflows to engineer, prototype, and deploy live full-stack applications.";
+
 export const metadata: Metadata = {
-  title: "Saif Khan | AI-Driven Full-Stack Developer & Product Builder",
-  description:
-    "Leveraging advanced agentic AI workflows to engineer, prototype, and deploy live full-stack applications.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: title,
+    template: "%s | Saif Khan",
+  },
+  description,
   keywords: [
     "Saif Khan",
     "Full-Stack Developer",
@@ -25,7 +33,24 @@ export const metadata: Metadata = {
     "casfrosting.com",
     "openstudydeck.com",
   ],
-  authors: [{ name: "Saif Khan", url: "https://iamsaifkhan.com" }],
+  authors: [{ name: "Saif Khan", url: siteUrl }],
+  creator: "Saif Khan",
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "Saif Khan",
+    title,
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
 
 export default function RootLayout({
@@ -41,6 +66,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans text-slate-100 bg-[#030712] relative">
+        {/* Skip link for keyboard users */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+
         {/* Glowing Background Orbs */}
         <BackgroundOrbs />
 
@@ -50,7 +80,10 @@ export default function RootLayout({
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 flex flex-col justify-start">
+        <main
+          id="main-content"
+          className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 flex flex-col justify-start"
+        >
           {children}
         </main>
 
