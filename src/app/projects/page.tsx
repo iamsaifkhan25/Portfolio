@@ -1,33 +1,33 @@
 import React from "react";
-import { ExternalLink, Cpu, Layers, CheckCircle } from "lucide-react";
+import { ExternalLink, Cpu, Layers } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
 
 export default function ProjectsPage() {
   const projects = [
     {
-      title: "casfrosting.com",
-      subtitle: "Commercial UI Assets & CSS Presets Platform",
+      title: "CSS Frosting",
+      subtitle: "Glassmorphism Styling Tool",
       description:
-        "A live commercial web application engineered and deployed end-to-end utilizing advanced agentic AI workflows. The platform operates on a premium monetization model, selling high-quality paid CSS presets directly to developers, validating its real-world user demand, commercial viability, and product-market fit. Premium checkout transactions are processed securely via integration with Razorpay.",
-      techStack: ["Next.js", "React 19", "Tailwind CSS", "Razorpay Checkout", "Agentic Engineering"],
-      url: "https://casfrosting.com",
+        "A tool for experimenting with glassmorphic styles, previewing presets, and exporting styling code. The repository includes a code analyzer, account features, and a Razorpay checkout flow for paid access.",
+      techStack: ["Next.js", "React 19", "TypeScript", "Tailwind CSS", "Supabase", "Razorpay", "OpenNext / Cloudflare Workers"],
+      url: "https://cssfrosting.com",
       highlights: [
-        "Monetized via premium, paid developer-focused CSS styling packages",
-        "Direct integration of secure Razorpay Order & Webhook verification APIs",
-        "Engineered with modular, high-speed cached code for optimal conversions",
+        "Adjust and preview glassmorphic styling in an interactive canvas",
+        "Export CSS, Tailwind classes, styled-components, or React inline styles",
+        "Explore presets and check styling with the code analyzer",
       ],
     },
     {
-      title: "openstudydeck.com",
-      subtitle: "Full-Stack Learning & Study Platform (Community Funded)",
+      title: "Open Study Deck",
+      subtitle: "Browser-Based AI Study Card Studio",
       description:
-        "A full-stack learning companion application focusing on streamlined digital studying. Features robust spaced-repetition card decks and study metrics. It implements a custom-integrated Razorpay coffee donation flow powered by Cloudflare Pages Serverless Functions to self-fund server infrastructure, demonstrating user-first design.",
-      techStack: ["React", "TypeScript", "Vite", "Razorpay Donations", "Cloudflare Pages Functions"],
+        "Turn pasted notes or textbook images into flashcards, summaries, and outlines with Google Gemini. Use limited guest access or your own API key, keep a study library in your browser, and export styled cards as PNG images. An optional Razorpay donation flow is included.",
+      techStack: ["HTML / CSS", "JavaScript", "Vite", "Google Gemini", "Cloudflare Pages Functions", "Cloudflare KV / Turnstile", "Razorpay"],
       url: "https://openstudydeck.com",
       highlights: [
-        "Sustained via custom-built Razorpay coffee donation workflows to offset operations",
-        "User-first learning tool validating clean full-stack architectural design",
-        "Cloudflare Pages Functions serverless backend for secure transaction orders",
+        "Generate study material from text or images in four study modes",
+        "Save decks in the browser and export styled cards as PNGs",
+        "Choose guest generation or bring your own Gemini API key",
       ],
     },
   ];
@@ -37,15 +37,15 @@ export default function ProjectsPage() {
       {/* Page Header */}
       <div className="border-b border-white/5 pb-6">
         <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-          Live Deployed Projects
+          Projects
           <span className="text-indigo-400">.</span>
         </h1>
         <p className="text-slate-400 text-sm md:text-base mt-2">
-          Deep-dive showcase of premium applications built and shipped to production.
+          Tools I&apos;ve built and continue to learn from.
         </p>
       </div>
 
-      {/* Tech Narrative Banner */}
+      {/* AI workflow disclosure */}
       <GlassCard className="border border-indigo-500/20 bg-indigo-950/10 shadow-[0_0_30px_rgba(99,102,241,0.05)] relative overflow-hidden" hoverEffect={false}>
         <div className="absolute top-0 right-0 p-8 opacity-5 text-indigo-400 pointer-events-none hidden md:block">
           <Cpu size={120} />
@@ -53,28 +53,14 @@ export default function ProjectsPage() {
         <div className="flex flex-col gap-4 relative z-10">
           <div className="flex items-center gap-2 text-indigo-400">
             <Cpu size={20} className="shrink-0" />
-            <h2 className="text-lg font-bold tracking-wide uppercase">AI Agent Development Narrative</h2>
+            <h2 className="text-lg font-bold tracking-wide uppercase">How I Use AI Tools</h2>
           </div>
           <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light">
-            These live applications are built by leveraging state-of-the-art AI agents (such as{" "}
-            <code className="text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded text-xs">agy</code> and{" "}
-            <code className="text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded text-xs">ccd</code>) as core development partners. 
-            This agentic development paradigm maximizes **shipping velocity**, ensures **clean modular architecture**, and allows **rapid prototyping** that is fully production-ready from the very first commit.
+            I use Codex and Claude Code to help explore ideas, understand unfamiliar code, prototype,
+            and work through bugs. I&apos;m still learning, and AI assistance is part of that process.
+            I remain responsible for what I build: the design decisions, understanding the changes,
+            testing the results, and iterating when something doesn&apos;t work.
           </p>
-          <div className="flex flex-wrap gap-4 mt-1 text-xs text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle size={12} className="text-emerald-400" />
-              <span>10x Prototyping Speed</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle size={12} className="text-emerald-400" />
-              <span>Rigorous Linting & Tests</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle size={12} className="text-emerald-400" />
-              <span>Sleek, Production-Ready Deploys</span>
-            </div>
-          </div>
         </div>
       </GlassCard>
 

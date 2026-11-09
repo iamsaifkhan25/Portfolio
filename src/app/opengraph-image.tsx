@@ -74,7 +74,7 @@ export default async function Image() {
             color: "#c7d2fe",
           }}
         >
-          AI-Driven Full-Stack Developer & Product Builder
+          I build things I&apos;m curious about.
         </div>
         <div
           style={{
@@ -85,7 +85,7 @@ export default async function Image() {
             maxWidth: 900,
           }}
         >
-          Engineering, prototyping, and deploying live full-stack applications with agentic AI workflows.
+          Web tools, interactive experiences, little experiments, and sometimes entire game worlds.
         </div>
       </div>
     ),

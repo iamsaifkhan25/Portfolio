@@ -12,9 +12,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 const siteUrl = "https://iamsaifkhan.com";
-const title = "Saif Khan | AI-Driven Full-Stack Developer & Product Builder";
+const title = "Saif Khan | I build things I'm curious about.";
 const description =
-  "Leveraging advanced agentic AI workflows to engineer, prototype, and deploy live full-stack applications.";
+  "Web tools, interactive experiences, little experiments, and sometimes entire game worlds.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -25,13 +25,13 @@ export const metadata: Metadata = {
   description,
   keywords: [
     "Saif Khan",
-    "Full-Stack Developer",
-    "Agentic AI",
-    "Product Builder",
+    "Personal Projects",
+    "Interactive Experiences",
+    "Learning to Build",
     "Next.js Portfolio",
     "Tailwind CSS Portfolio",
-    "casfrosting.com",
-    "openstudydeck.com",
+    "CSS Frosting",
+    "Open Study Deck",
   ],
   authors: [{ name: "Saif Khan", url: siteUrl }],
   creator: "Saif Khan",

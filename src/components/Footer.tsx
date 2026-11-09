@@ -9,7 +9,7 @@ export default function Footer() {
           <div className="flex items-center gap-2">
             <span className="font-semibold text-slate-200 tracking-wider text-sm">SAIF KHAN</span>
             <span className="h-4 w-[1px] bg-white/10" />
-            <span className="text-xs text-slate-500">AI-Driven Builder</span>
+            <span className="text-xs text-slate-500">Building & Learning</span>
           </div>
           <p className="text-center text-xs leading-5 text-slate-400 md:text-left">
             &copy; {new Date().getFullYear()} Saif Khan. All rights reserved.
