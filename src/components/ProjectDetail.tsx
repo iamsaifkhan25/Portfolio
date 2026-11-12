@@ -44,8 +44,6 @@ export default function ProjectDetail({ project }: { project: Project }) {
         </div>
       </header>
 
-      {project.coverImage ? <ProjectFigure screenshot={project.coverImage} /> : null}
-
       {project.limitation ? <p className={styles.limitation}>{project.limitation}</p> : null}
 
       <div className={styles.storyGrid}>

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
 import { projects } from "@/data/projects";
+import HomeProjectPreview from "@/components/HomeProjectPreview";
 import styles from "./page.module.css";
 
 const featuredProject = projects.find((project) => project.id === "open-study-deck");
@@ -36,7 +37,7 @@ export default function Home() {
 
         {image && (
           <figure className={styles.projectFigure}>
-            <Link href="/projects" className={styles.projectImageLink} aria-label={`${featuredProject.title}: explore projects`}>
+            <HomeProjectPreview project={featuredProject} className={styles.projectImageTrigger} descriptionId="home-project-caption">
               <Image
                 src={image.src}
                 alt={image.alt}
@@ -46,8 +47,8 @@ export default function Home() {
                 loading="eager"
                 className={styles.projectImage}
               />
-            </Link>
-            <figcaption className={`type-metadata ${styles.caption}`}>
+            </HomeProjectPreview>
+            <figcaption id="home-project-caption" className={`type-metadata ${styles.caption}`}>
               <span className={styles.projectTitle}>{featuredProject.title}</span>
               <span>{image.caption}</span>
             </figcaption>

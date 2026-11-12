@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Mail, Phone, MapPin, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import GlassCard from "@/components/GlassCard";
+import { contactLimits, submitContact } from "@/lib/contact";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
@@ -11,32 +12,16 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
-      setErrorMessage("Please fill out all fields before sending.");
-      setStatus("error");
-      return;
-    }
+    if (status === "sending") return;
 
     setStatus("sending");
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setStatus("success");
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        setErrorMessage("Something went wrong sending your message. Please try again or email me directly.");
-        setStatus("error");
-      }
-    } catch (error) {
-      console.error("[CONTACT_SUBMIT_ERROR]:", error);
-      setErrorMessage("Something went wrong sending your message. Please try again or email me directly.");
+    setErrorMessage("");
+    const result = await submitContact(formData);
+    if (result.success) {
+      setStatus("success");
+      setFormData({ name: "", email: "", message: "" });
+    } else {
+      setErrorMessage(result.error);
       setStatus("error");
     }
   };
@@ -119,6 +104,7 @@ export default function ContactPage() {
                 <input
                   type="text"
                   id="name"
+                  maxLength={contactLimits.name}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="John Doe"
@@ -136,6 +122,7 @@ export default function ContactPage() {
                 <input
                   type="email"
                   id="email"
+                  maxLength={contactLimits.email}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="john@example.com"
@@ -152,6 +139,7 @@ export default function ContactPage() {
                 </label>
                 <textarea
                   id="message"
+                  maxLength={contactLimits.message}
                   rows={4}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -167,7 +155,7 @@ export default function ContactPage() {
                 {status === "success" && (
                   <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-sm">
                     <CheckCircle2 size={16} className="shrink-0" />
-                    <span>Message sent! I&apos;ll get back to you as soon as possible.</span>
+                    <span>Message accepted for sending. Thank you for getting in touch.</span>
                   </div>
                 )}
                 {status === "error" && (
