@@ -1,0 +1,86 @@
+.page {
+  display: grid;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.introduction, .details, .message, .fallback {
+  display: grid;
+  align-content: start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.introduction { max-width: var(--measure-reading); }
+.layout { display: grid; gap: var(--space-12); min-width: 0; }
+.row {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+  border-top: var(--border-separator);
+}
+.row dd, .fallback p { overflow-wrap: anywhere; }
+.contactLink {
+  display: inline-block;
+  min-height: var(--space-12);
+  max-width: 100%;
+  padding-block: var(--space-2);
+  overflow-wrap: anywhere;
+  font-size: var(--type-body-size);
+  line-height: var(--leading-prose);
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 0.25em;
+}
+.contactLink:hover { color: var(--color-accent); }
+.fallback { border-top: var(--border-separator); padding-top: var(--space-8); }
+.emailAction { justify-self: start; min-height: var(--space-12); }
+.formSurface {
+  display: grid;
+  gap: var(--space-8);
+  padding: var(--space-6);
+  border-radius: var(--radius-panel);
+  min-width: 0;
+}
+.form { display: grid; gap: var(--space-6); min-width: 0; }
+.field { display: grid; gap: var(--space-3); min-width: 0; }
+.field label {
+  font-size: 1rem;
+  line-height: var(--leading-metadata);
+  font-weight: var(--weight-interface);
+  color: var(--color-primary);
+}
+.control {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--space-12);
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
+  line-height: var(--leading-prose);
+}
+textarea.control { resize: vertical; min-height: 10rem; }
+.control:disabled { opacity: 0.7; }
+.submit { min-height: var(--space-12); font-size: 1rem; cursor: pointer; }
+.submit:disabled { opacity: 0.7; }
+.status {
+  font-size: 1rem;
+  line-height: var(--leading-prose);
+  color: var(--color-body);
+  overflow-wrap: anywhere;
+}
+.textLink { color: var(--color-accent); text-decoration: underline; text-underline-offset: 0.25em; }
+.textLink:hover { color: var(--color-primary); }
+
+@media (min-width: 48rem) {
+  .page { gap: var(--space-16); }
+  .formSurface { padding: var(--space-8); }
+}
+
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--space-12);
+    align-items: start;
+  }
+}

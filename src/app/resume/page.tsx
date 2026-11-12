@@ -1,7 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { Briefcase, GraduationCap, Download, FileText, CheckCircle2, Sparkles } from "lucide-react";
-import GlassCard from "@/components/GlassCard";
+import styles from "./page.module.css";
+import { pageMetadata } from "@/lib/site";
+
+export const metadata = pageMetadata(
+  "Resume",
+  "Saif Khan's experience, education, competencies, and downloadable resume.",
+  "/resume",
+);
 
 export default function ResumePage() {
   const experiences = [
@@ -55,132 +61,62 @@ export default function ResumePage() {
   ];
 
   return (
-    <div className="flex flex-col gap-10 md:gap-14 animate-fade-in">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-white/5">
-        <div>
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            Resume & Experience
-          </h1>
-          <p className="text-slate-400 text-sm md:text-base mt-2">
-            Traditional career background and academic credentials.
-          </p>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.introduction}>
+          <h1 className="type-page-title font-display-serif">Resume &amp; Experience</h1>
+          <p className="type-intro">Traditional career background and academic credentials.</p>
         </div>
-        <a
-          href="/Saif%20Resume.pdf"
-          download="Saif Khan Resume.pdf"
-          className="glass-btn-primary flex items-center gap-2 group w-full md:w-auto"
-        >
-          <Download size={16} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
+        <a href="/Saif%20Resume.pdf" download="Saif Khan Resume.pdf" className={`glass-btn ${styles.download}`}>
           Download PDF Resume
         </a>
-      </div>
-
-      {/* Background and current interests */}
-      <GlassCard
-        className="border border-indigo-500/20 bg-indigo-950/10 shadow-[0_0_30px_rgba(99,102,241,0.05)]"
-        hoverEffect={false}
-      >
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-indigo-400">
-            <Sparkles size={18} className="shrink-0" />
-            <h2 className="text-sm font-bold tracking-wide uppercase">What I&apos;m Building Toward</h2>
-          </div>
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light">
-            My background is in partner operations, and I&apos;m learning by building projects of my own.
-            I use AI coding tools to explore ideas and prototype, while taking responsibility for
-            decisions, testing, and iteration. The{" "}
-            <Link href="/projects" className="text-indigo-300 underline decoration-indigo-500/40 hover:decoration-indigo-300 transition-colors">
-              Projects page
-            </Link>{" "}
-            shows some of that work.
-          </p>
-        </div>
-      </GlassCard>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Experience Timeline (Left 2 cols) */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="flex items-center gap-2 text-indigo-400 font-semibold mb-2">
-            <Briefcase size={20} />
-            <h2 className="text-xl md:text-2xl font-bold text-slate-100">Professional Experience</h2>
-          </div>
-
-          <div className="relative border-l border-white/10 pl-6 ml-3 flex flex-col gap-8">
-            {experiences.map((exp, index) => (
-              <div key={index} className="relative">
-                {/* Timeline node */}
-                <div className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full bg-[#030712] border-2 border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-
-                <div className="flex flex-col gap-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-lg font-bold text-slate-100">{exp.role}</h3>
-                    <span className="text-xs text-indigo-400 font-medium px-2.5 py-0.5 rounded-full border border-indigo-500/20 bg-indigo-500/5">
-                      {exp.period}
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-semibold text-slate-300">{exp.company}</h4>
-                  <p className="text-slate-400 text-sm leading-relaxed mt-1 font-light">
-                    {exp.description}
-                  </p>
-
-                  {/* Highlights list */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {exp.highlights.map((h, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] text-slate-300 bg-white/5 border border-white/5 rounded-md px-2 py-0.5"
-                      >
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+      </header>
+      <section className={styles.section} aria-labelledby="building-title">
+        <h2 id="building-title" className="type-section font-display-serif">What I&apos;m Building Toward</h2>
+        <p className={`type-body ${styles.prose}`}>
+          My background is in partner operations, and I&apos;m learning by building projects of my own.
+          I use AI coding tools to explore ideas and prototype, while taking responsibility for
+          decisions, testing, and iteration. The{" "}
+          <Link href="/projects" className={styles.textLink}>Projects page</Link>{" "}
+          shows some of that work.
+        </p>
+      </section>
+      <section className={styles.section} aria-labelledby="experience-title">
+        <h2 id="experience-title" className="type-section font-display-serif">Professional Experience</h2>
+        <ol className={styles.rows}>
+          {experiences.map((exp) => (
+            <li key={exp.role} className={styles.row}>
+              <p className="type-metadata">{exp.period}</p>
+              <div className={styles.entry}>
+                <h3 className={styles.entryTitle}>{exp.role}</h3>
+                <p className={styles.employer}>{exp.company}</p>
+                <p className={`type-body ${styles.prose}`}>{exp.description}</p>
+                <ul className={styles.highlights} aria-label="Areas of work">
+                  {exp.highlights.map((highlight) => <li key={highlight}>{highlight}</li>)}
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Education & Skills (Right col) */}
-        <div className="flex flex-col gap-8">
-          {/* Education */}
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-indigo-400 font-semibold">
-              <GraduationCap size={20} />
-              <h2 className="text-xl font-bold text-slate-100">Education</h2>
-            </div>
-            {education.map((item) => (
-              <GlassCard key={item.degree} className="flex flex-col gap-3">
-                <div>
-                  <h3 className="font-bold text-slate-100 text-sm leading-snug">{item.degree}</h3>
-                  <span className="text-xs text-indigo-400 mt-1 block">{item.institution}</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed font-light">
-                  {item.details}
-                </p>
-              </GlassCard>
-            ))}
-          </div>
-
-          {/* Skills Checklist */}
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 text-indigo-400 font-semibold">
-              <FileText size={20} />
-              <h2 className="text-xl font-bold text-slate-100">Core Competencies</h2>
-            </div>
-            <GlassCard className="flex flex-col gap-3" hoverEffect={false}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
-                {skills.map((skill, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-indigo-400 shrink-0" />
-                    <span className="text-slate-300 text-xs font-medium">{skill}</span>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
-          </div>
-        </div>
-      </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+      <section className={styles.section} aria-labelledby="education-title">
+        <h2 id="education-title" className="type-section font-display-serif">Education</h2>
+        <ul className={styles.rows}>
+          {education.map((item) => (
+            <li key={item.degree} className={styles.educationRow}>
+              <h3 className={styles.entryTitle}>{item.degree}</h3>
+              <p className={styles.employer}>{item.institution}</p>
+              <p className="type-metadata">{item.details}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className={styles.section} aria-labelledby="competencies-title">
+        <h2 id="competencies-title" className="type-section font-display-serif">Core Competencies</h2>
+        <ul className={`type-body ${styles.skills}`}>
+          {skills.map((skill) => <li key={skill}>{skill}</li>)}
+        </ul>
+      </section>
     </div>
   );
 }

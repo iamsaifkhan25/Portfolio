@@ -1,4 +1,7 @@
 import { ImageResponse } from "next/og";
+import { socialImageAlt } from "@/lib/site";
+
+export const alt = socialImageAlt;
 
 export const size = {
   width: 1200,
@@ -51,7 +54,7 @@ export default async function Image() {
             SK
           </div>
           <div style={{ display: "flex", fontSize: 28, color: "#a5b4fc", fontWeight: 600, letterSpacing: 2 }}>
-            IAMSAIFKHAN.COM
+            SAIFKHANS.NETLIFY.APP
           </div>
         </div>
         <div

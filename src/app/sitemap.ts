@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = "https://iamsaifkhan.com";
   const routes = ["", "/projects", "/resume", "/contact"];
 
   return routes.map((route) => ({

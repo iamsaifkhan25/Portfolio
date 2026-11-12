@@ -1,45 +1,77 @@
 @import "tailwindcss";
 
 @theme {
-  --color-glass-bg: rgba(10, 15, 30, 0.45);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-glass-glow: rgba(99, 102, 241, 0.15);
-  
-  --font-sans: var(--font-geist-sans), Inter, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  
-  --animate-float-slow: float-slow 20s ease-in-out infinite;
-  --animate-float-medium: float-medium 15s ease-in-out infinite;
-  --animate-float-fast: float-fast 8s ease-in-out infinite;
-  --animate-pulse-slow: pulse-slow 8s ease-in-out infinite;
+  --color-canvas: #070A12;
+  --color-reading: #101523;
+  --color-raised: #151B2D;
+  --color-primary: #F1F2F6;
+  --color-body: #CED3DE;
+  --color-muted: #A4ADBD;
+  --color-accent: #A5B4FC;
+  --color-action: #4338CA;
+  --color-ambient-indigo: #6366F1;
+  --color-ambient-violet: #8B5CF6;
+  --color-control: #67718A;
+  --color-glass-bg: rgb(16 21 35 / 88%);
+  --color-glass-raised: rgb(21 27 45 / 92%);
+  --color-glass-border: rgb(255 255 255 / 10%);
+
   --animate-fade-in: fade-in 0.6s ease-out both;
 
-  @keyframes float-slow {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.95); }
-  }
-  @keyframes float-medium {
-    0%, 100% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-    50% { transform: translate(-40px, 40px) scale(1.05) rotate(180deg); }
-  }
-  @keyframes float-fast {
-    0%, 100% { transform: translate(0px, 0px) scale(1); }
-    50% { transform: translate(20px, -20px) scale(1.02); }
-  }
-  @keyframes pulse-slow {
-    0%, 100% { opacity: 0.2; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(1.1); }
-  }
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
 }
 
+/* next/font owns the source variable on <html>; Tailwind maps it once. */
+@theme inline {
+  --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --font-display-serif: Georgia, Cambria, "Times New Roman", serif;
+}
+
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --background: var(--color-canvas);
+  --foreground: var(--color-primary);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-28: 7rem;
+
+  --radius-control: 0.75rem;
+  --radius-panel: 1.25rem;
+  /* Keep in sync with the existing capsule CSS and 3A transition geometry. */
+  --radius-capsule: 36px;
+  --radius-dialog: 0px;
+  --radius-pill: 9999px;
+  --border-separator: 1px solid var(--color-glass-border);
+  --border-control: 1px solid var(--color-control);
+  --shadow-surface: inset 0 1px 0 rgb(255 255 255 / 5%), 0 8px 32px rgb(0 0 0 / 28%);
+  --surface-blur: 16px;
+  --transition-feedback: 160ms ease;
+
+  --type-display-size: clamp(2.25rem, 5vw, 4.5rem);
+  --type-page-title-size: clamp(2rem, 4vw, 3.5rem);
+  --type-section-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  --type-intro-size: clamp(1.0625rem, 2vw, 1.25rem);
+  --type-body-size: clamp(1rem, 1.5vw, 1.125rem);
+  --type-metadata-size: 0.875rem;
+  --leading-display: 1.1;
+  --leading-heading: 1.2;
+  --leading-prose: 1.75;
+  --leading-metadata: 1.5;
+  --weight-body: 400;
+  --weight-interface: 500;
+  --weight-heading: 600;
+  --measure-reading: 66ch;
 }
 
 body {
@@ -48,12 +80,52 @@ body {
   overflow-x: hidden;
 }
 
+/* Opt-in roles: existing page and capsule typography migrates in later milestones. */
+.type-display {
+  font-size: var(--type-display-size);
+  line-height: var(--leading-display);
+  font-weight: var(--weight-heading);
+  letter-spacing: -0.04em;
+}
+.type-page-title {
+  font-size: var(--type-page-title-size);
+  line-height: var(--leading-heading);
+  font-weight: var(--weight-heading);
+  letter-spacing: -0.03em;
+  color: var(--color-primary);
+}
+.type-section {
+  font-size: var(--type-section-size);
+  line-height: var(--leading-heading);
+  font-weight: var(--weight-heading);
+  color: var(--color-primary);
+}
+.type-intro {
+  font-size: var(--type-intro-size);
+  line-height: var(--leading-prose);
+  font-weight: var(--weight-body);
+  color: var(--color-body);
+}
+.type-body {
+  font-size: var(--type-body-size);
+  line-height: var(--leading-prose);
+  font-weight: var(--weight-body);
+  color: var(--color-body);
+}
+.type-metadata {
+  font-size: var(--type-metadata-size);
+  line-height: var(--leading-metadata);
+  font-weight: var(--weight-body);
+  color: var(--color-muted);
+}
+/* The homepage headline opts into the system serif display family. */
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #030712;
+  background: var(--color-canvas);
 }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
@@ -65,77 +137,79 @@ body {
 
 /* Glassmorphic Utilities */
 .glass-panel {
-  background: rgba(10, 15, 30, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: var(--color-reading);
+  border: var(--border-separator);
+  box-shadow: var(--shadow-surface);
 }
 
 .glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color var(--transition-feedback), border-color var(--transition-feedback);
 }
 .glass-panel-hover:hover {
-  background: rgba(15, 23, 42, 0.55);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
-  transform: translateY(-2px);
+  background: var(--color-raised);
+  border-color: var(--color-control);
+}
+
+/* Opaque surfaces remain the default when neither filter is supported. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel {
+    background: var(--color-glass-bg);
+    backdrop-filter: blur(var(--surface-blur));
+    -webkit-backdrop-filter: blur(var(--surface-blur));
+  }
+  .glass-panel-hover:hover {
+    background: var(--color-glass-raised);
+  }
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
+  background: var(--color-raised);
+  color: var(--color-body);
+  border: var(--border-control);
+  border-radius: var(--radius-control);
+  transition: border-color var(--transition-feedback), background-color var(--transition-feedback);
+}
+.glass-input::placeholder {
+  color: var(--color-muted);
+  opacity: 1;
 }
 .glass-input:focus {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(99, 102, 241, 0.5);
-  outline: none;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+  border-color: var(--color-accent);
 }
 
-/* Glass Button Base */
-.glass-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  color: #ffffff;
-  backdrop-filter: blur(8px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.glass-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
+/* Shared action geometry stays unchanged; controls use opaque surfaces. */
+.glass-btn,
 .glass-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(129, 140, 248, 0.4);
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.4) 0%, rgba(99, 102, 241, 0.2) 100%);
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  color: #ffffff;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px 0 rgba(99, 102, 241, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  border: var(--border-control);
+  background: var(--color-raised);
+  padding: var(--space-3) var(--space-6);
+  font-weight: var(--weight-interface);
+  color: var(--color-primary);
+  transition: color var(--transition-feedback), background-color var(--transition-feedback), border-color var(--transition-feedback);
+}
+.glass-btn:hover {
+  background: var(--color-reading);
+  border-color: var(--color-accent);
+}
+
+.glass-btn-primary {
+  background: var(--color-action);
+  border-color: var(--color-accent);
 }
 .glass-btn-primary:hover {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.6) 0%, rgba(99, 102, 241, 0.3) 100%);
-  border-color: rgba(129, 140, 248, 0.6);
-  box-shadow: 0 4px 30px 0 rgba(99, 102, 241, 0.4);
-  transform: translateY(-1px);
+  background: var(--color-reading);
+}
+.glass-btn:disabled,
+.glass-btn-primary:disabled {
+  cursor: not-allowed;
+}
+.glass-btn-primary:disabled:hover {
+  background: var(--color-action);
 }
 
 /* Keyboard focus visibility (mouse users unaffected via :focus-visible) */
@@ -143,29 +217,28 @@ a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
+select:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid rgba(129, 140, 248, 0.8);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* Skip-to-content link: hidden until keyboard-focused */
 .skip-link {
   position: fixed;
   top: -100px;
-  left: 1rem;
+  left: var(--space-4);
   z-index: 100;
-  background: #0f172a;
-  color: #ffffff;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(129, 140, 248, 0.4);
-  font-weight: 600;
-  font-size: 0.875rem;
-  transition: top 0.2s ease;
+  background: var(--color-reading);
+  color: var(--color-primary);
+  padding: var(--space-3) 1.25rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-accent);
+  font-weight: var(--weight-heading);
+  font-size: var(--type-metadata-size);
 }
 .skip-link:focus {
-  top: 1rem;
+  top: var(--space-4);
 }
 
 /* Respect user motion preferences */

@@ -9,12 +9,12 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
 export default function GlassCard({
   children,
   className = "",
-  hoverEffect = true,
+  hoverEffect = false,
   ...props
 }: GlassCardProps) {
   return (
     <div
-      className={`glass-panel rounded-2xl p-6 md:p-8 ${
+      className={`glass-panel rounded-[var(--radius-panel)] p-6 md:p-8 ${
         hoverEffect ? "glass-panel-hover" : ""
       } ${className}`}
       {...props}

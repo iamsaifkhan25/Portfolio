@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
+import { isPreviewDeploy, siteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = "https://iamsaifkhan.com";
-
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${siteUrl}/sitemap.xml`,
+    // Permit crawling so preview pages' noindex metadata can be read.
+    sitemap: isPreviewDeploy ? undefined : `${siteUrl}/sitemap.xml`,
   };
 }
