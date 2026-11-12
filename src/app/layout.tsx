@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BackgroundOrbs from "@/components/BackgroundOrbs";
+import { isPreviewDeploy, siteUrl } from "@/lib/site";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
@@ -11,7 +12,6 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const siteUrl = "https://iamsaifkhan.com";
 const title = "Saif Khan | I build things I'm curious about.";
 const description =
   "Web tools, interactive experiences, little experiments, and sometimes entire game worlds.";
@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Saif Khan",
   },
   description,
+  alternates: { canonical: siteUrl },
   keywords: [
     "Saif Khan",
     "Personal Projects",
@@ -36,8 +37,8 @@ export const metadata: Metadata = {
   authors: [{ name: "Saif Khan", url: siteUrl }],
   creator: "Saif Khan",
   robots: {
-    index: true,
-    follow: true,
+    index: !isPreviewDeploy,
+    follow: !isPreviewDeploy,
   },
   openGraph: {
     type: "website",

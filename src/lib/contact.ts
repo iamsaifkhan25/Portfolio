@@ -1,6 +1,7 @@
 export const contactLimits = { name: 100, email: 254, message: 5000 } as const;
 
 export const contactErrors = {
+  CONTACT_DISABLED: "The contact form is currently disabled. Please email me directly.",
   INVALID_JSON: "Please reload the page and try again.",
   INVALID_INPUT: "Please fill out all fields before sending.",
   INVALID_EMAIL: "Please enter a valid email address.",

@@ -1,6 +1,13 @@
 import ProjectShowcase from "@/components/ProjectShowcase";
 import { projects } from "@/data/projects";
 import styles from "./page.module.css";
+import { pageMetadata } from "@/lib/site";
+
+export const metadata = pageMetadata(
+  "Projects",
+  "Tools, experiments, and a game I'm slowly building.",
+  "/projects",
+);
 
 const orderedProjects = [...projects].sort((a, b) => a.order - b.order);
 

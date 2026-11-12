@@ -43,7 +43,7 @@ function responseDiagnostics(response: Response): UpstreamDiagnostics {
 }
 
 function failure(code: keyof typeof contactErrors, status: number, diagnostics?: UpstreamDiagnostics) {
-  if (status >= 500) {
+  if (status >= 500 && code !== "CONTACT_DISABLED") {
     // Deliberately omit provider bodies, exceptions, sender details and messages.
     console.warn("[CONTACT_DELIVERY]", { code, ...diagnostics });
   }
@@ -54,6 +54,12 @@ function failure(code: keyof typeof contactErrors, status: number, diagnostics?:
 }
 
 export async function POST(request: Request) {
+  // The public UI switch is presentation only. Delivery needs a separate,
+  // explicit server opt-in; reject before reading a body or contacting anyone.
+  if (process.env.CONTACT_DELIVERY_ENABLED !== "true") {
+    return failure("CONTACT_DISABLED", 503);
+  }
+
   let input: unknown;
   try {
     input = await request.json();

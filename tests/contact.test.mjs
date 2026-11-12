@@ -34,6 +34,7 @@ const { submitContact, contactErrors } = loadTs("src/lib/contact.ts");
 const endpoint = "https://formsubmit.co/ajax/iamsaifkhan25@gmail.com";
 const validInput = { name: "Test Sender", email: "sender@example.com", message: "Mocked test only.\nNo email delivery." };
 const privateDetail = "PRIVATE_PROVIDER_OR_SENDER_DETAIL";
+let originalDeliveryEnabled;
 
 function request(input = validInput, url = "http://localhost:3000/api/contact") {
   return new Request(url, {
@@ -42,12 +43,32 @@ function request(input = validInput, url = "http://localhost:3000/api/contact") 
 }
 
 beforeEach(() => {
+  originalDeliveryEnabled = process.env.CONTACT_DELIVERY_ENABLED;
+  process.env.CONTACT_DELIVERY_ENABLED = "true";
   // Fail closed: every scenario must replace this stub to reach a provider.
   mock.method(globalThis, "fetch", () => { throw new Error("Unmocked fetch forbidden"); });
   mock.method(console, "warn", () => {});
   mock.method(console, "info", () => {});
 });
-afterEach(() => mock.restoreAll());
+afterEach(() => {
+  mock.restoreAll();
+  if (originalDeliveryEnabled === undefined) delete process.env.CONTACT_DELIVERY_ENABLED;
+  else process.env.CONTACT_DELIVERY_ENABLED = originalDeliveryEnabled;
+});
+
+for (const flag of [undefined, "false", "TRUE", "1", "", "unknown"]) {
+  test(`delivery is disabled before parsing or fetching for flag ${JSON.stringify(flag)}`, async () => {
+    if (flag === undefined) delete process.env.CONTACT_DELIVERY_ENABLED;
+    else process.env.CONTACT_DELIVERY_ENABLED = flag;
+    const input = request();
+    const parse = mock.method(input, "json", () => { throw new Error("Body must not be read"); });
+    await assertFailure(await POST(input), 503, "CONTACT_DISABLED");
+    assert.equal(parse.mock.callCount(), 0);
+    assert.equal(fetch.mock.callCount(), 0);
+    assert.equal(console.warn.mock.callCount(), 0);
+    assert.equal(console.info.mock.callCount(), 0);
+  });
+}
 
 async function assertFailure(response, status, code) {
   assert.equal(response.status, status);
