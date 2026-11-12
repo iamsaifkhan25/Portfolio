@@ -14,6 +14,12 @@ const assets = [
   ["CSSFrosting/Analyzer Result.png", "css-frosting/analyzer-result.webp"],
   ["HackerRankOrchestrate/OutputCSV.png", "ghost-data/output-csv.webp"],
   ["HackerRankOrchestrate/UnresolvedCSV.png", "ghost-data/unresolved-csv.webp"],
+  ["EchoScapeLabs/ESL Home Page.png", "echoscape-labs/home.webp"],
+  ["EchoScapeLabs/EXPERIENCE STUDIO STEP ONE.png", "echoscape-labs/experience-studio.webp"],
+  ["EchoScapeLabs/ALL WORLDS.png", "echoscape-labs/worlds.webp"],
+  ["EchoScapeLabs/EXPERIENCE STUDIO STEP TWO.png", "echoscape-labs/choose-world.webp"],
+  ["EchoScapeLabs/EXPERIENCE STUDIO STEP THREE.png", "echoscape-labs/liquid-gold.webp"],
+  ["HackerRankOrchestrate/Comptetion Home Page.png", "ghost-data/december-2026-event-context.webp"],
 ];
 const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex");
 const records = [];

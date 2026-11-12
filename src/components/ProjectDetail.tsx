@@ -7,6 +7,7 @@ import styles from "./ProjectShowcase.module.css";
 function ProjectFigure({ screenshot }: { screenshot: ProjectImage }) {
   return (
     <figure className={styles.figure}>
+      {screenshot.title ? <h4 className={styles.figureTitle}>{screenshot.title}</h4> : null}
       <a
         href={screenshot.src}
         target="_blank"
@@ -38,25 +39,41 @@ export default function ProjectDetail({ project }: { project: Project }) {
         <h2 id={`${project.id}-detail-title`} className={styles.detailTitle}>{project.title}</h2>
         {project.subtitle ? <p className={styles.detailStatus}>{project.subtitle}</p> : null}
         <p className={styles.detailStatus}>{projectStatusLabels[project.status]}</p>
-        <p className={styles.overview}>{project.description}</p>
+        <div className={`${styles.overview} ${styles.paragraphs}`}>
+          {project.caseStudy.story.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
       </header>
+
+      {project.coverImage ? <ProjectFigure screenshot={project.coverImage} /> : null}
 
       {project.limitation ? <p className={styles.limitation}>{project.limitation}</p> : null}
 
       <div className={styles.storyGrid}>
         <section>
-          <h3>What it sets out to do</h3>
+          <h3>The idea in practice</h3>
           <p>{project.caseStudy.purpose}</p>
         </section>
         <section>
-          <h3>Features and implementation</h3>
+          <h3>What I built</h3>
           <ul className={styles.featureList}>
-            {project.caseStudy.implementation.map((feature) => <li key={feature}>{feature}</li>)}
+            {project.caseStudy.features.map((feature) => <li key={feature}>{feature}</li>)}
           </ul>
         </section>
       </div>
 
-      {project.pipeline ? <ProjectPipeline pipeline={project.pipeline} /> : null}
+      {project.caseStudy.workflow?.length ? (
+        <section>
+          <h3>How it works</h3>
+          <ol className={styles.workflow}>
+            {project.caseStudy.workflow.map((step) => (
+              <li key={step.title}>
+                <h4>{step.title}</h4>
+                <p>{step.detail}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
 
       {project.screenshots?.length ? (
         <section className={styles.gallery}>
@@ -66,16 +83,48 @@ export default function ProjectDetail({ project }: { project: Project }) {
       ) : null}
 
       <section>
-        <h3>Challenges and development notes</h3>
-        <p>{project.caseStudy.developmentNotes}</p>
-      </section>
-
-      <section>
-        <h3>Built with</h3>
+        <h3>Behind the Build</h3>
+        <div className={styles.paragraphs}>
+          {project.caseStudy.implementation.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
         <ul className={styles.technologies} aria-label={`${project.title} technologies`}>
           {project.techStack.map((tech) => <li key={tech}>{tech}</li>)}
         </ul>
       </section>
+
+      {project.pipeline ? <ProjectPipeline pipeline={project.pipeline} /> : null}
+
+      <section>
+        <h3>Design decisions</h3>
+        <div className={styles.paragraphs}>
+          {project.caseStudy.decisions.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+      </section>
+
+      <section>
+        <h3>Results and limitations</h3>
+        <div className={styles.paragraphs}>
+          {project.caseStudy.results.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+      </section>
+
+      {project.caseStudy.futureWork?.length ? (
+        <section>
+          <h3>Future direction</h3>
+          <div className={styles.paragraphs}>
+            {project.caseStudy.futureWork.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </div>
+        </section>
+      ) : null}
+
+      {project.caseStudy.lessons?.length ? (
+        <section>
+          <h3>What I learned</h3>
+          <div className={styles.paragraphs}>
+            {project.caseStudy.lessons.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </div>
+        </section>
+      ) : null}
 
       {project.links.demo || project.links.source ? (
         <nav className={styles.projectLinks} aria-label={`${project.title} external links`}>
