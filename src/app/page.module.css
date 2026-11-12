@@ -1,0 +1,147 @@
+.journal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.hero {
+  display: grid;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.introduction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.name {
+  color: var(--color-primary);
+  font-size: var(--type-intro-size);
+  font-weight: var(--weight-heading);
+}
+
+.headline {
+  max-width: 15ch;
+  color: var(--color-primary);
+  font-weight: var(--weight-body);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.lead {
+  max-width: 43ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.actions a {
+  min-height: var(--space-12);
+}
+
+.projectFigure {
+  min-width: 0;
+  width: 100%;
+  max-width: 40rem;
+}
+
+.projectImageLink {
+  display: block;
+  border: var(--border-separator);
+  border-radius: var(--radius-control);
+  background: var(--color-reading);
+}
+
+.projectImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.projectTitle {
+  color: var(--color-body);
+  font-weight: var(--weight-interface);
+}
+
+.entries {
+  min-width: 0;
+}
+
+.entry {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-8);
+  border-top: var(--border-separator);
+}
+
+.entry:last-child {
+  padding-bottom: 0;
+}
+
+.entry > * {
+  min-width: 0;
+}
+
+.entry p,
+.closing {
+  max-width: var(--measure-reading);
+}
+
+.closing strong {
+  font-weight: var(--weight-interface);
+}
+
+.closing a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 0.25em;
+  transition: color var(--transition-feedback), text-decoration-color var(--transition-feedback);
+}
+
+.closing a:hover {
+  color: var(--color-primary);
+  text-decoration-color: var(--color-accent);
+}
+
+@media (max-width: 29.999rem) {
+  .actions {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 48rem) {
+  .journal {
+    gap: var(--space-20);
+  }
+
+  .entry {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--space-12);
+    padding-block: var(--space-12);
+  }
+}
+
+@media (min-width: 64rem) {
+  .hero {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-12);
+    padding-block: var(--space-6);
+  }
+}

@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import BackgroundOrbs from "@/components/BackgroundOrbs";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-sans",
+  variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
 });
@@ -65,7 +65,7 @@ export default function RootLayout({
       style={{ colorScheme: "dark" }}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans text-slate-100 bg-[#030712] relative">
+      <body className="min-h-full flex flex-col font-sans relative">
         {/* Skip link for keyboard users */}
         <a href="#main-content" className="skip-link">
           Skip to main content
