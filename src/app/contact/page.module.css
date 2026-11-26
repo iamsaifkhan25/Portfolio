@@ -13,6 +13,40 @@
 
 .introduction { max-width: var(--measure-reading); }
 .layout { display: grid; gap: var(--space-12); min-width: 0; }
+.details, .message, .fallback {
+  border-top: var(--border-separator);
+  padding-top: var(--space-6);
+}
+.personalNote {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 40ch;
+}
+.social {
+  display: grid;
+  gap: var(--space-2);
+  border-top: var(--border-separator);
+  padding-top: var(--space-4);
+}
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--space-12);
+  padding-inline: var(--space-1);
+  color: var(--color-body);
+  text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 0.25em;
+}
+.socialLink:hover { color: var(--color-accent); }
 .row {
   display: grid;
   gap: var(--space-2);
@@ -34,17 +68,23 @@
   text-underline-offset: 0.25em;
 }
 .contactLink:hover { color: var(--color-accent); }
-.fallback { border-top: var(--border-separator); padding-top: var(--space-8); }
 .emailAction { justify-self: start; min-height: var(--space-12); }
 .formSurface {
   display: grid;
-  gap: var(--space-8);
+  gap: var(--space-4);
   padding: var(--space-6);
   border-radius: var(--radius-panel);
   min-width: 0;
 }
-.form { display: grid; gap: var(--space-6); min-width: 0; }
-.field { display: grid; gap: var(--space-3); min-width: 0; }
+.formNotice {
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-separator);
+  font-size: var(--type-metadata-size);
+  line-height: var(--leading-prose);
+  color: var(--color-body);
+}
+.form { display: grid; gap: var(--space-4); min-width: 0; }
+.field { display: grid; gap: var(--space-2); min-width: 0; }
 .field label {
   font-size: 1rem;
   line-height: var(--leading-metadata);
@@ -59,7 +99,7 @@
   font-size: 1rem;
   line-height: var(--leading-prose);
 }
-textarea.control { resize: vertical; min-height: 10rem; }
+textarea.control { resize: vertical; min-height: 8rem; }
 .control:disabled { opacity: 0.7; }
 .submit { min-height: var(--space-12); font-size: 1rem; cursor: pointer; }
 .submit:disabled { opacity: 0.7; }
@@ -74,12 +114,11 @@ textarea.control { resize: vertical; min-height: 10rem; }
 
 @media (min-width: 48rem) {
   .page { gap: var(--space-16); }
-  .formSurface { padding: var(--space-8); }
 }
 
 @media (min-width: 64rem) {
   .layout {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     gap: var(--space-12);
     align-items: start;
   }

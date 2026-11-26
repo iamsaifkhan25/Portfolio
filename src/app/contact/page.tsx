@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { contactLimits, submitContact } from "@/lib/contact";
 import styles from "./page.module.css";
 
@@ -8,23 +8,30 @@ import styles from "./page.module.css";
 const formEnabled = process.env.NEXT_PUBLIC_CONTACT_FORM_ENABLED === "true";
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", message: "", "bot-field": "" });
+  const submitting = useRef(false);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formEnabled || status === "sending") return;
+    // A ref closes the gap before React renders the disabled submit button.
+    if (!formEnabled || submitting.current) return;
+    submitting.current = true;
 
     setStatus("sending");
     setErrorMessage("");
-    const result = await submitContact(formData);
-    if (result.success) {
-      setStatus("success");
-      setFormData({ name: "", email: "", message: "" });
-    } else {
-      setErrorMessage(result.error);
-      setStatus("error");
+    try {
+      const result = await submitContact(formData);
+      if (result.success) {
+        setStatus("success");
+        setFormData({ name: "", email: "", message: "", "bot-field": "" });
+      } else {
+        setErrorMessage(result.error);
+        setStatus("error");
+      }
+    } finally {
+      submitting.current = false;
     }
   };
 
@@ -40,6 +47,10 @@ export default function ContactPage() {
       <div className={styles.layout}>
         <section aria-labelledby="contact-details-title" className={styles.details}>
           <h2 id="contact-details-title" className="type-section font-display-serif">Contact Details</h2>
+          <div className={`type-body ${styles.personalNote}`}>
+            <p>I build web tools and interactive projects, and use AI workflows to explore ideas as I go.</p>
+            <p>If you have a collaboration in mind or a professional opportunity to discuss, I&apos;d like to hear about it.</p>
+          </div>
           <dl>
             <div className={styles.row}>
               <dt className="type-metadata">Email Me</dt>
@@ -54,17 +65,30 @@ export default function ContactPage() {
               <dd className="type-body">New Delhi, India</dd>
             </div>
           </dl>
+          <nav aria-label="Social profiles" className={styles.social}>
+            <p className="type-metadata">Elsewhere</p>
+            <ul className={styles.socialLinks}>
+              <li><a href="https://github.com/iamsaifkhan25" className={styles.socialLink}>GitHub</a></li>
+              <li><a href="https://www.linkedin.com/in/iamsaifkhan25" className={styles.socialLink}>LinkedIn</a></li>
+            </ul>
+          </nav>
         </section>
 
         {formEnabled ? (
           <section aria-labelledby="message-title" className={styles.message}>
             <h2 id="message-title" className="type-section font-display-serif">Send a Message</h2>
             <div className={`glass-panel ${styles.formSurface}`}>
-              <p id="form-notice" className="type-body">
+              <p id="form-notice" className={styles.formNotice}>
                 Form delivery is unverified. Please <a href="mailto:iamsaifkhan25@gmail.com" className={styles.textLink}>email me directly</a> for contact.
                 This form is available for delivery testing.
               </p>
-              <form onSubmit={handleSubmit} className={styles.form} aria-labelledby="message-title" aria-describedby="form-notice form-required" aria-busy={status === "sending"}>
+              <form name="portfolio-contact" method="POST" onSubmit={handleSubmit} className={styles.form} aria-labelledby="message-title" aria-describedby="form-notice form-required" aria-busy={status === "sending"}>
+                <input type="hidden" name="form-name" value="portfolio-contact" />
+                <div hidden aria-hidden="true">
+                  <label htmlFor="bot-field">Leave this field empty</label>
+                  <input type="text" id="bot-field" name="bot-field" tabIndex={-1} autoComplete="off"
+                    value={formData["bot-field"]} onChange={(e) => setFormData({ ...formData, "bot-field": e.target.value })} />
+                </div>
                 <p id="form-required" className="type-metadata">All fields are required.</p>
                 <div className={styles.field}>
                   <label htmlFor="name">Full name (required)</label>
@@ -82,13 +106,14 @@ export default function ContactPage() {
                 </div>
                 <div className={styles.field}>
                   <label htmlFor="message">Message (required)</label>
-                  <textarea id="message" name="message" rows={6}
+                  <textarea id="message" name="message" rows={5}
                     maxLength={contactLimits.message} value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className={`glass-input ${styles.control}`} disabled={status === "sending"} required />
                 </div>
                 <div aria-live="polite" aria-atomic="true" role="status" className={styles.status}>
-                  {status === "success" && <p>Message accepted for sending. Inbox delivery is not confirmed.</p>}
+                  {status === "sending" && <p>Sending message...</p>}
+                  {status === "success" && <p>Message accepted by the contact service. Inbox delivery is not confirmed.</p>}
                   {status === "error" && <p>{errorMessage}{" "}<a href="mailto:iamsaifkhan25@gmail.com" className={styles.textLink}>Email me directly</a>.</p>}
                 </div>
                 <button type="submit" disabled={status === "sending"} className={`glass-btn-primary ${styles.submit}`}>

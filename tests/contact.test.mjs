@@ -1,456 +1,256 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import path from "node:path";
 import { afterEach, beforeEach, mock, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { runInThisContext } from "node:vm";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 
-const root = fileURLToPath(new URL("../", import.meta.url));
-const modules = new Map();
+const require = createRequire(import.meta.url);
+const validInput = { name: "Sender Name", email: "sender@example.com", message: "Mocked test only.\nNo email delivery." };
+const source = (file) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 
-// Run the actual TypeScript modules in memory with the installed compiler and
-// NextResponse. No test framework dependency or generated source files needed.
-function loadTs(relativePath) {
-  const filename = path.join(root, relativePath);
-  if (modules.has(filename)) return modules.get(filename).exports;
-  const loadedModule = { exports: {} };
-  modules.set(filename, loadedModule);
-  const { outputText } = ts.transpileModule(readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-    fileName: filename,
+// Execute actual TS/TSX with installed dependencies. The hook harness below tests
+// event/state behavior without adding a framework; it is not browser/DOM QA.
+function load(file, { react = React, flag, deliveryFlag } = {}, cache = new Map()) {
+  if (cache.has(file)) return cache.get(file);
+  const exports = {};
+  cache.set(file, exports);
+  const { outputText } = ts.transpileModule(source(file), {
+    fileName: file,
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React, esModuleInterop: true },
   });
-  const require = createRequire(filename);
-  const localRequire = (specifier) => specifier.startsWith("@/")
-    ? loadTs(`src/${specifier.slice(2)}.ts`)
-    : require(specifier);
-  runInThisContext(`(function(exports, require, module) { ${outputText}\n})`, { filename })(loadedModule.exports, localRequire, loadedModule);
-  return loadedModule.exports;
+  const localRequire = (name) => {
+    if (name === "react") return react;
+    if (name.endsWith(".css")) return { default: {} , __esModule: true };
+    if (name.startsWith("@/")) return load(`src/${name.slice(2)}.ts`, { react, flag, deliveryFlag }, cache);
+    return require(name);
+  };
+  runInThisContext(`(function(exports, require, process) { ${outputText}\n})`, { filename: file })(
+    exports, localRequire, { env: { NEXT_PUBLIC_CONTACT_FORM_ENABLED: flag, CONTACT_DELIVERY_ENABLED: deliveryFlag } },
+  );
+  return exports;
 }
-
-const { POST } = loadTs("src/app/api/contact/route.ts");
-const { submitContact, contactErrors } = loadTs("src/lib/contact.ts");
-const endpoint = "https://formsubmit.co/ajax/iamsaifkhan25@gmail.com";
-const validInput = { name: "Test Sender", email: "sender@example.com", message: "Mocked test only.\nNo email delivery." };
-const privateDetail = "PRIVATE_PROVIDER_OR_SENDER_DETAIL";
-let originalDeliveryEnabled;
-
-function request(input = validInput, url = "http://localhost:3000/api/contact") {
-  return new Request(url, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input),
-  });
-}
+const { submitContact, contactErrors, contactLimits } = load("src/lib/contact.ts");
 
 beforeEach(() => {
-  originalDeliveryEnabled = process.env.CONTACT_DELIVERY_ENABLED;
-  process.env.CONTACT_DELIVERY_ENABLED = "true";
-  // Fail closed: every scenario must replace this stub to reach a provider.
-  mock.method(globalThis, "fetch", () => { throw new Error("Unmocked fetch forbidden"); });
-  mock.method(console, "warn", () => {});
-  mock.method(console, "info", () => {});
+  mock.method(globalThis, "fetch", () => { throw new Error("Unmocked network forbidden"); });
 });
-afterEach(() => {
-  mock.restoreAll();
-  if (originalDeliveryEnabled === undefined) delete process.env.CONTACT_DELIVERY_ENABLED;
-  else process.env.CONTACT_DELIVERY_ENABLED = originalDeliveryEnabled;
-});
+afterEach(() => mock.restoreAll());
 
-for (const flag of [undefined, "false", "TRUE", "1", "", "unknown"]) {
-  test(`delivery is disabled before parsing or fetching for flag ${JSON.stringify(flag)}`, async () => {
-    if (flag === undefined) delete process.env.CONTACT_DELIVERY_ENABLED;
-    else process.env.CONTACT_DELIVERY_ENABLED = flag;
-    const input = request();
-    const parse = mock.method(input, "json", () => { throw new Error("Body must not be read"); });
-    await assertFailure(await POST(input), 503, "CONTACT_DISABLED");
-    assert.equal(parse.mock.callCount(), 0);
+for (const field of ["name", "email", "message"]) {
+  for (const value of [undefined, "", " \n\t ", 42]) {
+    test(`required ${field}: ${JSON.stringify(value)} prevents submission`, async () => {
+      assert.deepEqual(await submitContact({ ...validInput, [field]: value }), { success: false, error: contactErrors.INVALID_INPUT });
+      assert.equal(fetch.mock.callCount(), 0);
+    });
+  }
+  test(`oversized ${field} prevents submission`, async () => {
+    const result = await submitContact({ ...validInput, [field]: "x".repeat(contactLimits[field] + 1) });
+    assert.deepEqual(result, { success: false, error: contactErrors.INPUT_TOO_LONG });
     assert.equal(fetch.mock.callCount(), 0);
-    assert.equal(console.warn.mock.callCount(), 0);
-    assert.equal(console.info.mock.callCount(), 0);
+  });
+}
+for (const email of ["invalid", "a@", "@example.com", "a b@example.com", "a@example.com\0", "a@b@c.com"]) {
+  test(`invalid email ${JSON.stringify(email)}`, async () => {
+    assert.deepEqual(await submitContact({ ...validInput, email }), { success: false, error: contactErrors.INVALID_EMAIL });
+    assert.equal(fetch.mock.callCount(), 0);
   });
 }
 
-async function assertFailure(response, status, code) {
-  assert.equal(response.status, status);
-  assert.equal(response.headers.get("cache-control"), "no-store");
-  assert.deepEqual(await response.json(), { success: false, code, error: contactErrors[code] });
-  const logs = JSON.stringify([...console.warn.mock.calls, ...console.info.mock.calls].map((call) => call.arguments));
-  assert.ok(!logs.includes(privateDetail));
-  assert.ok(!logs.includes(validInput.email));
-  assert.ok(!logs.includes(validInput.message));
-  assert.ok(!logs.includes(validInput.name));
-}
-
-function upstreamResponse(body, { url = endpoint, redirected = false, ...options } = {}) {
-  const response = new Response(body, options);
-  // Native fetch supplies these read-only properties; no real requests are made.
-  Object.defineProperties(response, { url: { value: url }, redirected: { value: redirected } });
-  return response;
-}
-
-for (const success of [true, "true", " TRUE "]) {
-  test(`provider acceptance ${JSON.stringify(success)} is normalized`, async () => {
-    mock.method(globalThis, "fetch", async (url, options) => {
-      assert.equal(url, endpoint);
-      assert.equal(options.method, "POST");
-      assert.equal(options.headers.Accept, "application/json");
-      assert.equal(options.headers["Content-Type"], "application/json");
-      assert.equal(options.redirect, "manual");
-      assert.equal(options.cache, "no-store");
-      assert.ok(options.signal instanceof AbortSignal);
-      assert.deepEqual(JSON.parse(options.body), {
-        ...validInput, _subject: "Portfolio Message from Test Sender", _url: "http://localhost:3000/contact",
-      });
-      return Response.json({ success, message: "Accepted" });
-    });
-    const response = await POST(request({ ...validInput, _cc: "ignored@example.com", _captcha: "false", _url: "https://untrusted.invalid" }));
-    assert.equal(response.status, 200);
-    assert.equal(response.headers.get("cache-control"), "no-store");
-    assert.deepEqual(await response.json(), { success: true });
-  });
-}
-
-for (const origin of ["https://main--saifkhans.netlify.app", "https://saifkhans.netlify.app"]) {
-  test(`form metadata uses the request deployment: ${origin}`, async () => {
-    mock.method(globalThis, "fetch", async (_url, options) => {
-      assert.equal(JSON.parse(options.body)._url, `${origin}/contact`);
-      return Response.json({ success: true });
-    });
-    assert.equal((await POST(request(validInput, `${origin}/api/contact?private=query`))).status, 200);
-  });
-}
-
-for (const success of [false, "false", " FALSE "]) {
-  test(`HTTP 200 with provider success ${JSON.stringify(success)} fails`, async () => {
-    mock.method(globalThis, "fetch", async () => Response.json({ success, message: privateDetail }));
-    await assertFailure(await POST(request()), 502, "PROVIDER_REJECTED");
-  });
-}
-
-test("an explicit provider error overrides contradictory success", async () => {
-  mock.method(globalThis, "fetch", async () => Response.json({ success: true, error: privateDetail }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_REJECTED");
+test("raw length limits include surrounding whitespace", async () => {
+  assert.equal((await submitContact({ ...validInput, name: " ".repeat(100) + "a" })).error, contactErrors.INPUT_TOO_LONG);
+  assert.equal(fetch.mock.callCount(), 0);
 });
 
-test("an explicit provider error also overrides string acceptance", async () => {
-  mock.method(globalThis, "fetch", async () => Response.json({ success: "true", error: privateDetail }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_REJECTED");
-});
-
-test("provider HTTP failure cannot be overridden by a success body", async () => {
-  mock.method(globalThis, "fetch", async () => Response.json({ success: true }, { status: 503 }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_HTTP_ERROR");
-});
-
-test("provider HTTP 204 without acceptance is not success", async () => {
-  mock.method(globalThis, "fetch", async () => new Response(null, { status: 204 }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_INVALID_RESPONSE");
-});
-
-for (const status of [400, 403, 429, 500, 503]) {
-  test(`provider HTTP ${status} is mapped without leaking its body`, async () => {
-    mock.method(globalThis, "fetch", async () => new Response(`<html>${privateDetail}</html>`, { status }));
-    await assertFailure(await POST(request()), status === 429 ? 503 : 502, status === 429 ? "CONTACT_BUSY" : "PROVIDER_HTTP_ERROR");
-    assert.equal(console.warn.mock.calls[0].arguments[1].providerStatus, status);
-  });
-}
-
-for (const data of [null, [], true, "true", {}, { message: "Accepted" }, { success: 1 }, { success: "yes" }]) {
-  test(`unexpected provider JSON ${JSON.stringify(data)} is not acceptance`, async () => {
-    mock.method(globalThis, "fetch", async () => Response.json(data));
-    await assertFailure(await POST(request()), 502, "PROVIDER_INVALID_RESPONSE");
-  });
-}
-
-for (const body of ["<html>Challenge page</html>", "", "{broken"] ) {
-  test(`non-JSON provider body ${JSON.stringify(body)} fails safely`, async () => {
-    mock.method(globalThis, "fetch", async () => new Response(body));
-    await assertFailure(await POST(request()), 502, "PROVIDER_INVALID_RESPONSE");
-  });
-}
-
-test("provider network or redirect failure is safe", async () => {
-  mock.method(globalThis, "fetch", async () => { throw new TypeError(privateDetail); });
-  await assertFailure(await POST(request()), 502, "PROVIDER_UNAVAILABLE");
-});
-
-for (const [body, contentType, classification, accepted] of [
-  ['{"success":true}', "application/json; charset=utf-8", "JSON", true],
-  ['{"success":true}', "application/problem+json", "JSON", true],
-  ['{"success":true}', "text/plain", "JSON", true],
-  [" \n<!DOCTYPE html><html>Challenge</html>", "text/html; charset=UTF-8", "HTML", false],
-  ["<html>Challenge</html>", "application/json", "HTML", false],
-  ["<div>Challenge</div>", null, "HTML", false],
-  ['{"success":true}', "text/html", "HTML", false],
-  ["<html />", "application/xhtml+xml", "HTML", false],
-  [" \n\t", "application/json", "empty", false],
-  ["{broken", "application/json", "unexpected", false],
-  ["upstream unavailable", "text/plain", "unexpected", false],
-]) {
-  test(`upstream diagnostics classify ${classification} with ${contentType}`, async () => {
-    const headers = contentType ? { "Content-Type": contentType } : {};
-    const upstream = upstreamResponse(body, { headers, url: `${endpoint}?token=${privateDetail}#secret` });
-    if (!contentType) upstream.headers.delete("content-type");
-    mock.method(globalThis, "fetch", async () => upstream);
-    const response = await POST(request());
-    if (accepted) {
-      assert.equal(response.status, 200);
-      assert.deepEqual(await response.json(), { success: true });
-    } else {
-      await assertFailure(response, 502, "PROVIDER_INVALID_RESPONSE");
-    }
-    const logs = [...console.warn.mock.calls, ...console.info.mock.calls];
-    assert.equal(logs.length, 1);
-    assert.deepEqual(logs[0].arguments, ["[CONTACT_DELIVERY]", {
-      code: accepted ? "PROVIDER_ACCEPTED" : "PROVIDER_INVALID_RESPONSE",
-      providerStatus: 200,
-      providerContentType: contentType?.split(";", 1)[0] ?? null,
-      providerRedirected: false,
-      providerRedirectBlocked: false,
-      providerResponseOrigin: "https://formsubmit.co",
-      providerResponsePathname: "/ajax/[redacted]",
-      providerResponseClassification: classification,
-    }]);
-  });
-}
-
-for (const status of [301, 302, 303, 307, 308]) {
-  test(`HTTP ${status} is inspected without following or logging Location`, async () => {
-    mock.method(globalThis, "fetch", async (_url, options) => {
-      assert.equal(options.redirect, "manual");
-      return upstreamResponse(`<html>${privateDetail}</html>`, { status, headers: {
-        "Content-Type": "text/html", Location: `https://untrusted.invalid/${privateDetail}`,
-      } });
-    });
-    await assertFailure(await POST(request()), 502, "PROVIDER_UNAVAILABLE");
-    assert.equal(fetch.mock.calls.length, 1);
-    const log = console.warn.mock.calls[0].arguments[1];
-    assert.equal(log.providerStatus, status);
-    assert.equal(log.providerRedirected, false);
-    assert.equal(log.providerRedirectBlocked, true);
-    assert.equal(log.providerResponseClassification, "HTML");
-  });
-}
-
-test("an already-followed response cannot be reported as accepted", async () => {
-  mock.method(globalThis, "fetch", async () => upstreamResponse('{"success":true}', {
-    redirected: true, headers: { "Content-Type": "application/json" },
-    url: `https://formsubmit.co/confirm/${privateDetail}?secret=${privateDetail}`,
-  }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_UNAVAILABLE");
-  const log = console.warn.mock.calls[0].arguments[1];
-  assert.equal(log.providerRedirected, true);
-  assert.equal(log.providerResponsePathname, "/confirm/[redacted]");
-});
-
-test("success diagnostics omit payloads, cookies, header parameters, credentials and URL secrets", async () => {
-  mock.method(globalThis, "fetch", async () => upstreamResponse(JSON.stringify({ success: true, message: privateDetail }), {
-    headers: {
-      "Content-Type": `Application/JSON; secret=${privateDetail}`,
-      "Set-Cookie": `session=${privateDetail}`,
-      "X-Token": privateDetail,
-    },
-    url: `https://user:${privateDetail}@formsubmit.co/ajax/${encodeURIComponent(validInput.email)}/${privateDetail}?token=${privateDetail}#${privateDetail}`,
-  }));
-  assert.equal((await POST(request())).status, 200);
-  assert.deepEqual(console.info.mock.calls[0].arguments, ["[CONTACT_DELIVERY]", {
-    code: "PROVIDER_ACCEPTED", providerStatus: 200, providerContentType: "application/json",
-    providerRedirected: false, providerRedirectBlocked: false,
-    providerResponseOrigin: "https://formsubmit.co", providerResponsePathname: "/ajax/[redacted]/[redacted]",
-    providerResponseClassification: "JSON",
-  }]);
-});
-
-for (const url of ["", "not a URL", `data:text/plain,${privateDetail}`]) {
-  test(`unavailable or non-HTTP response URL is omitted: ${url.split(":", 1)[0]}`, async () => {
-    mock.method(globalThis, "fetch", async () => upstreamResponse("failure", { url }));
-    await assertFailure(await POST(request()), 502, "PROVIDER_INVALID_RESPONSE");
-    const log = console.warn.mock.calls[0].arguments[1];
-    assert.equal(log.providerResponseOrigin, null);
-    assert.equal(log.providerResponsePathname, null);
-  });
-}
-
-test("HTTP error diagnostics classify the body without leaking it", async () => {
-  mock.method(globalThis, "fetch", async () => upstreamResponse(`<html>${privateDetail}</html>`, {
-    status: 403, headers: { "Content-Type": "text/html" },
-  }));
-  await assertFailure(await POST(request()), 502, "PROVIDER_HTTP_ERROR");
-  assert.equal(console.warn.mock.calls[0].arguments[1].providerResponseClassification, "HTML");
-});
-
-test("body read failure retains safe metadata and the HTTP error mapping", async () => {
-  const upstream = upstreamResponse(null, { status: 429, headers: { "Content-Type": "application/json" } });
-  upstream.text = async () => { throw new Error(privateDetail); };
-  mock.method(globalThis, "fetch", async () => upstream);
-  await assertFailure(await POST(request()), 503, "CONTACT_BUSY");
-  assert.equal(console.warn.mock.calls[0].arguments[1].providerResponseClassification, "unexpected");
-});
-
-// The mocked fetch/body respects AbortSignal just like native fetch. Advance
-// timers without waiting 15 or 20 seconds or making any network requests.
-function untilAborted(signal) {
-  return new Promise((_resolve, reject) => {
-    signal.addEventListener("abort", () => reject(new DOMException(privateDetail, "AbortError")), { once: true });
-  });
-}
-
-test("provider fetch times out at 15 seconds", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  let started;
-  const ready = new Promise((resolve) => { started = resolve; });
-  mock.method(globalThis, "fetch", (_url, options) => { started(); return untilAborted(options.signal); });
-  const pending = POST(request());
-  await ready;
-  t.mock.timers.tick(15000);
-  await assertFailure(await pending, 504, "PROVIDER_TIMEOUT");
-});
-
-test("provider body reading shares the same deadline", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  let started;
-  const ready = new Promise((resolve) => { started = resolve; });
-  mock.method(globalThis, "fetch", async (_url, options) => ({
-    ok: true, status: 200,
-    headers: new Headers({ "Content-Type": "application/json" }), url: endpoint, redirected: false,
-    text: () => { started(); return untilAborted(options.signal); },
-  }));
-  const pending = POST(request());
-  await ready;
-  t.mock.timers.tick(15000);
-  await assertFailure(await pending, 504, "PROVIDER_TIMEOUT");
-  const log = console.warn.mock.calls[0].arguments[1];
-  assert.equal(log.providerStatus, 200);
-  assert.equal(log.providerContentType, "application/json");
-  assert.equal(log.providerResponseClassification, "unexpected");
-});
-
-for (const input of [null, [], {}, { ...validInput, name: "  " }, { ...validInput, email: 12 }, { ...validInput, message: {} }, { ...validInput, name: "Name\r\nInjected" }]) {
-  test(`invalid input ${JSON.stringify(input)} never reaches provider`, async () => {
-    await assertFailure(await POST(request(input)), 400, "INVALID_INPUT");
-    assert.equal(fetch.mock.calls.length, 0);
-  });
-}
-
-test("invalid sender email never reaches provider", async () => {
-  await assertFailure(await POST(request({ ...validInput, email: "invalid-email" })), 400, "INVALID_EMAIL");
-  assert.equal(fetch.mock.calls.length, 0);
-});
-
-for (const [field, length] of [["name", 101], ["email", 255], ["message", 5001]]) {
-  test(`oversized ${field} never reaches provider`, async () => {
-    await assertFailure(await POST(request({ ...validInput, [field]: "x".repeat(length) })), 400, "INPUT_TOO_LONG");
-    assert.equal(fetch.mock.calls.length, 0);
-  });
-}
-
-test("malformed request JSON returns 400 rather than 500", async () => {
-  await assertFailure(await POST(new Request("http://localhost:3000/api/contact", { method: "POST", body: "{broken" })), 400, "INVALID_JSON");
-  assert.equal(fetch.mock.calls.length, 0);
-});
-
-test("valid fields are trimmed before forwarding", async () => {
-  mock.method(globalThis, "fetch", async (_url, options) => {
-    const { name, email, message } = JSON.parse(options.body);
-    assert.deepEqual({ name, email, message }, validInput);
-    return Response.json({ success: true });
-  });
-  const padded = Object.fromEntries(Object.entries(validInput).map(([key, value]) => [key, `  ${value}  `]));
-  assert.equal((await POST(request(padded))).status, 200);
-});
-
-test("browser submission succeeds only on the normalized backend contract", async () => {
+test("URLSearchParams encodes the exact static form fields and special characters", async () => {
+  const input = { name: " Saif & Co + % ", email: "sender+contact@example.com", message: "Hello = \u0928\u092e\u0938\u094d\u0924\u0947 & caf\u00e9\nSecond line + %", "bot-field": "" };
   mock.method(globalThis, "fetch", async (url, options) => {
-    assert.equal(url, "/api/contact");
-    assert.deepEqual(JSON.parse(options.body), validInput);
-    return Response.json({ success: true });
+    assert.equal(url, "/__forms.html");
+    assert.equal(options.method, "POST");
+    assert.equal(options.headers["Content-Type"], "application/x-www-form-urlencoded");
+    assert.equal(typeof options.body, "string");
+    assert.ok(options.signal instanceof AbortSignal);
+    assert.deepEqual(Object.fromEntries(new URLSearchParams(options.body)), {
+      "form-name": "portfolio-contact", ...input, name: input.name.trim(),
+    });
+    assert.match(options.body, /%26/);
+    assert.match(options.body, /%2B/);
+    assert.match(options.body, /%0A/);
+    return new Response("");
   });
-  assert.deepEqual(await submitContact(validInput), { success: true });
+  assert.deepEqual(await submitContact(input), { success: true });
+  assert.equal(fetch.mock.callCount(), 1);
 });
 
-for (const [status, data] of [[200, {}], [200, { success: false }], [200, { success: "true" }], [200, { success: true, error: privateDetail }], [500, { success: true }], [502, { error: privateDetail }], [200, { code: "toString" }]]) {
-  test(`browser rejects ambiguous backend response ${status} ${JSON.stringify(data)}`, async () => {
-    mock.method(globalThis, "fetch", async () => Response.json(data, { status }));
-    assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.PROVIDER_INVALID_RESPONSE });
+test("honeypot value is forwarded for Netlify spam processing", async () => {
+  mock.method(globalThis, "fetch", async (_url, options) => {
+    assert.equal(new URLSearchParams(options.body).get("bot-field"), "bot content");
+    return new Response("");
+  });
+  await submitContact({ ...validInput, "bot-field": "bot content" });
+});
+
+for (const status of [200, 201, 204]) {
+  test(`HTTP ${status} is accepted without requiring JSON`, async () => {
+    mock.method(globalThis, "fetch", async () => new Response(null, { status }));
+    assert.deepEqual(await submitContact(validInput), { success: true });
   });
 }
-
-test("browser uses approved error text and ignores raw provider details", async () => {
-  mock.method(globalThis, "fetch", async () => Response.json({ success: false, code: "CONTACT_BUSY", error: privateDetail }, { status: 503 }));
-  assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.CONTACT_BUSY });
+for (const status of [400, 403, 404, 422, 429, 500, 503]) {
+  test(`HTTP ${status} rejection keeps response content private`, async () => {
+    mock.method(globalThis, "fetch", async () => new Response("PRIVATE_PROVIDER_BODY", { status }));
+    assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.PROVIDER_HTTP_ERROR });
+  });
+}
+test("redirected success page does not establish acceptance", async () => {
+  mock.method(globalThis, "fetch", async () => {
+    const response = new Response("login");
+    Object.defineProperty(response, "redirected", { value: true });
+    return response;
+  });
+  assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.PROVIDER_INVALID_RESPONSE });
 });
-
-test("browser handles non-JSON platform responses", async () => {
-  mock.method(globalThis, "fetch", async () => new Response(`<html>${privateDetail}</html>`, { status: 502 }));
-  const result = await submitContact(validInput);
-  assert.deepEqual(result, { success: false, error: contactErrors.PROVIDER_INVALID_RESPONSE });
-});
-
-test("browser network failures are safe", async () => {
-  mock.method(globalThis, "fetch", async () => { throw new TypeError(privateDetail); });
+test("network failure provides a safe error", async () => {
   assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.PROVIDER_UNAVAILABLE });
 });
-
-test("browser request times out at 20 seconds", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  mock.method(globalThis, "fetch", (_url, options) => untilAborted(options.signal));
-  const pending = submitContact(validInput);
-  t.mock.timers.tick(20000);
-  assert.deepEqual(await pending, { success: false, error: contactErrors.PROVIDER_TIMEOUT });
-});
-
-test("browser rejects invalid input without a request", async () => {
-  assert.deepEqual(await submitContact({ ...validInput, message: "  " }), { success: false, error: contactErrors.INVALID_INPUT });
-  assert.equal(fetch.mock.calls.length, 0);
-});
-
-test("browser response body reading shares the 20 second deadline", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  let started;
-  const ready = new Promise((resolve) => { started = resolve; });
-  mock.method(globalThis, "fetch", async (_url, options) => ({
-    ok: true,
-    json: () => { started(); return untilAborted(options.signal); },
+test("timeout aborts submission and clears its timer", async () => {
+  const timers = [];
+  const clear = mock.method(globalThis, "clearTimeout", () => {});
+  mock.method(globalThis, "setTimeout", (callback, milliseconds) => {
+    assert.equal(milliseconds, 20000);
+    timers.push(callback);
+    return 123;
+  });
+  mock.method(globalThis, "fetch", (_url, { signal }) => new Promise((_resolve, reject) => {
+    signal.addEventListener("abort", () => reject(new Error("Aborted")));
   }));
   const pending = submitContact(validInput);
-  await ready;
-  t.mock.timers.tick(20000);
+  timers[0]();
   assert.deepEqual(await pending, { success: false, error: contactErrors.PROVIDER_TIMEOUT });
+  assert.deepEqual(clear.mock.calls[0].arguments, [123]);
 });
 
-test("browser to actual API route to mocked provider preserves rejection", async () => {
-  mock.method(globalThis, "fetch", async (url, options) => {
-    if (url === "/api/contact") return POST(new Request("http://localhost:3000/api/contact", options));
-    assert.equal(url, endpoint);
-    return Response.json({ success: "false", message: privateDetail });
-  });
-  assert.deepEqual(await submitContact(validInput), { success: false, error: contactErrors.PROVIDER_REJECTED });
+test("maximum permitted field lengths are accepted", async () => {
+  mock.method(globalThis, "fetch", async () => new Response(""));
+  assert.deepEqual(await submitContact({ name: "n".repeat(100), email: `${"a".repeat(64)}@${"b".repeat(185)}.com`, message: "m".repeat(5000) }), { success: true });
 });
 
-test("browser to actual API route to mocked provider preserves acceptance", async () => {
-  const visited = [];
-  mock.method(globalThis, "fetch", async (url, options) => {
-    visited.push(url);
-    if (url === "/api/contact") return POST(new Request("http://localhost:3000/api/contact", options));
-    assert.equal(url, endpoint);
-    return Response.json({ success: "true" });
+for (const flag of [undefined, "false", "TRUE", "1", "", "true"]) {
+  test(`presentation switch ${JSON.stringify(flag)} and direct email fallback`, () => {
+    const Page = load("src/app/contact/page.tsx", { flag }).default;
+    const html = renderToStaticMarkup(React.createElement(Page));
+    assert.ok(html.includes('href="mailto:iamsaifkhan25@gmail.com"'));
+    assert.equal(html.includes('<form name="portfolio-contact"'), flag === "true");
+    assert.equal(html.includes("Reach me by email"), flag !== "true");
+    if (flag === "true") {
+      assert.ok(html.includes('name="form-name" value="portfolio-contact"'));
+      assert.ok(html.includes('aria-live="polite"'));
+      assert.ok(html.includes('aria-busy="false"'));
+      for (const [name, limit] of Object.entries(contactLimits)) {
+        const control = html.match(new RegExp(`<(?:input|textarea)\\b[^>]*name="${name}"[^>]*>`))?.[0];
+        assert.ok(control);
+        assert.ok(control.includes(`maxLength="${limit}"`));
+        assert.ok(control.includes('required=""'));
+        assert.ok(html.includes(`for="${name}"`));
+      }
+      const staticHtml = source("public/__forms.html");
+      assert.equal((staticHtml.match(/<form\b/g) || []).length, 1);
+      assert.ok(staticHtml.includes('name="portfolio-contact"'));
+      assert.ok(staticHtml.includes('data-netlify="true"'));
+      assert.ok(staticHtml.includes('netlify-honeypot="bot-field"'));
+      const names = (text) => [...text.matchAll(/<(?:input|textarea)\b[^>]*\bname="([^"]+)"/g)].map((match) => match[1]).sort();
+      assert.deepEqual(names(html), names(staticHtml));
+      assert.deepEqual(names(html), ["bot-field", "email", "form-name", "message", "name"]);
+    }
+    assert.equal(fetch.mock.callCount(), 0);
   });
-  assert.deepEqual(await submitContact(validInput), { success: true });
-  assert.deepEqual(visited, ["/api/contact", endpoint]);
+}
+
+function nodes(tree) {
+  if (!tree || typeof tree !== "object") return [];
+  return [tree, ...React.Children.toArray(tree.props?.children).flatMap(nodes)];
+}
+function harness() {
+  let cursor = 0;
+  const slots = [];
+  const hooks = { ...React,
+    useState(initial) {
+      const index = cursor++;
+      if (!(index in slots)) slots[index] = initial;
+      return [slots[index], (value) => { slots[index] = value; }];
+    },
+    useRef(initial) {
+      const index = cursor++;
+      if (!(index in slots)) slots[index] = { current: initial };
+      return slots[index];
+    },
+  };
+  const Page = load("src/app/contact/page.tsx", { flag: "true", react: hooks }).default;
+  const render = () => { cursor = 0; return Page(); };
+  const find = (predicate) => nodes(render()).find(predicate);
+  const field = (name) => find((node) => node.props?.name === name);
+  const submit = () => find((node) => node.type === "form").props.onSubmit({ preventDefault() {} });
+  const values = () => Object.fromEntries(Object.keys(validInput).map((key) => [key, field(key).props.value]));
+  const fill = () => {
+    for (const [key, value] of Object.entries(validInput)) field(key).props.onChange({ target: { value } });
+  };
+  return { find, field, submit, values, fill };
+}
+
+test("rapid duplicate events, loading announcement, disabled controls, then accepted/reset", async () => {
+  let resolve;
+  mock.method(globalThis, "fetch", () => new Promise((done) => { resolve = done; }));
+  const page = harness();
+  page.fill();
+  // Capture one handler and invoke twice before rendering, as with rapid events.
+  const handler = page.find((node) => node.type === "form").props.onSubmit;
+  const event = { preventDefault() {} };
+  const pending = handler(event);
+  await handler(event);
+  assert.equal(fetch.mock.callCount(), 1);
+  assert.equal(page.find((node) => node.type === "form").props["aria-busy"], true);
+  for (const key of Object.keys(validInput)) assert.equal(page.field(key).props.disabled, true);
+  assert.equal(page.find((node) => node.type === "button").props.disabled, true);
+  assert.match(JSON.stringify(page.find((node) => node.props?.role === "status")), /Sending message/);
+  assert.deepEqual(page.values(), validInput);
+  resolve(new Response(""));
+  await pending;
+  assert.deepEqual(page.values(), { name: "", email: "", message: "" });
+  assert.equal(page.find((node) => node.type === "button").props.disabled, false);
+  assert.match(JSON.stringify(page.find((node) => node.props?.role === "status")), /Message accepted/);
 });
 
-test("provider timeout reaches the browser helper before its own deadline", async (t) => {
-  t.mock.timers.enable({ apis: ["setTimeout"] });
-  let started;
-  const ready = new Promise((resolve) => { started = resolve; });
-  mock.method(globalThis, "fetch", (url, options) => {
-    if (url === "/api/contact") return POST(new Request("http://localhost:3000/api/contact", options));
-    assert.equal(url, endpoint);
-    started();
-    return untilAborted(options.signal);
+for (const kind of ["validation", "server", "network"]) {
+  test(`${kind} failure retains input, announces error and permits retry`, async () => {
+    mock.method(globalThis, "fetch", async () => {
+      if (kind === "network") throw new TypeError("offline");
+      return new Response("Rejected", { status: 503 });
+    });
+    const page = harness();
+    page.fill();
+    if (kind === "validation") page.field("email").props.onChange({ target: { value: "invalid" } });
+    const before = page.values();
+    await page.submit();
+    assert.deepEqual(page.values(), before);
+    assert.equal(page.find((node) => node.type === "button").props.disabled, false);
+    assert.match(JSON.stringify(page.find((node) => node.props?.role === "status")), /email me directly|valid email address/i);
+    assert.ok(page.find((node) => node.props?.role === "status").props.children);
+    mock.method(globalThis, "fetch", async () => new Response(""));
+    page.field("email").props.onChange({ target: { value: validInput.email } });
+    await page.submit();
+    assert.deepEqual(page.values(), { name: "", email: "", message: "" });
   });
-  const pending = submitContact(validInput);
-  await ready;
-  t.mock.timers.tick(15000);
-  assert.deepEqual(await pending, { success: false, error: contactErrors.PROVIDER_TIMEOUT });
-});
+}
+
+for (const deliveryFlag of [undefined, "false", "true"]) {
+  test(`retired relay cannot send even with CONTACT_DELIVERY_ENABLED=${String(deliveryFlag)}`, async () => {
+    const { POST } = load("src/app/api/contact/route.ts", { deliveryFlag });
+    const response = await POST();
+    assert.equal(response.status, 410);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.equal((await response.json()).code, "CONTACT_DISABLED");
+    assert.equal(fetch.mock.callCount(), 0);
+  });
+}
