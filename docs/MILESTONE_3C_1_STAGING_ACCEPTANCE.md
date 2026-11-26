@@ -1,8 +1,10 @@
 # Milestone 3C.1: Staging release candidate and acceptance
 
+> Configuration update (2026-11-26): This is a historical milestone record. Its unset-means-disabled presentation instructions and old relay procedures are superseded by [the contact default-state fix](CONTACT_DEFAULT_STATE_FIX.md). Unset or exact `true` now shows the Netlify form; `false` and all other explicit values disable it. Production requires verified delivery and owner approval to enable, or explicit `NEXT_PUBLIC_CONTACT_FORM_ENABLED=false` in Netlify's production build context. `/api/contact` remains retired; do not follow historical FormSubmit activation steps.
+
 Reviewed on 2026-11-12 in `C:\Dev\Portfolio`, on `main`.
 
-**Status: Local release-candidate checks passed. Owner-verified deployment configuration clears the earlier push gate. The authorized staging checkpoint is in progress; hosted acceptance remains pending.**
+**Status: Staging checkpoint completed. Netlify reports the exact pushed release-candidate SHA ready on `main` in `branch-deploy` context. Authenticated hosted acceptance remains pending owner review.**
 
 Read `AGENTS.md`, `MILESTONE_3B_5_RELEASE_READINESS.md`, and `DEPLOYMENT_WORKFLOW.md`. The earlier attempt stopped without a commit or push because Netlify configuration was unverified. The owner has now verified the configuration and explicitly authorized this staging deployment. This report supersedes the earlier blocked status. Historical 3B.4/3B.5 statements retain their original review context.
 
@@ -34,7 +36,9 @@ No unrelated change, new private source material, unintended file, or confirmed 
 
 `public`, `Sources`, `src/data`, `package.json`, and `package-lock.json` have no diff from fetched `origin/main`. The existing project content, design implementation, assets, dependencies, and tests were not edited during this resumed task. Only this report was revised. PDF SHA-256 remains `AB7027A0987C00E69E80FF5D505AAF4211BBE7E72EAEC677F950C98D1CB7AB3A`. Generated Next/TypeScript output remains ignored.
 
-Only the explicit 18 reviewed paths are authorized for staging. Inspect the complete staged diff and whitespace check before committing `chore: prepare Personal Studio Journal staging release` on `main`, without a skip marker. Push only `main:refs/heads/main` to `origin`. No production release is authorized.
+Staged only the explicit 18 reviewed paths, inspected the staged paths and diff, confirmed the index matched the reviewed working files, and passed `git diff --cached --check`. Created commit `4108337fc36c37f929964ce155db1f8e922707bd` on `main` with message `chore: prepare Personal Studio Journal staging release`, without a skip marker. Pushed only `main:refs/heads/main` to `origin`. The first push waited at Git Credential Manager's account-selection dialog and was interrupted before any ref changed; the successful retry used the existing authenticated GitHub CLI helper through command-local `-c` options. No Git credential configuration was changed or credential value read.
+
+After the push, `git ls-remote --heads origin main master` confirmed remote `main` exactly equals the release-candidate SHA and remote `master` remains `0da2e282313a890f4d17c3a2b9fbd0b4a3c0af91`. Local `main`/`origin/main` match the candidate; local `master`/`origin/master` retain the production SHA. The working tree was clean and index empty before adding this post-deploy evidence. No production release was created.
 
 ## 3. Fresh local checks
 
@@ -44,14 +48,37 @@ Only the explicit 18 reviewed paths are authorized for staging. Inspect the comp
 | `npx.cmd tsc --noEmit` | Passed, exit 0, after the build. |
 | `npm.cmd run build` | Passed, exit 0, Next.js 16.4.5/Turbopack. Child-process settings: `CONTEXT=production`, `NEXT_PUBLIC_CONTACT_FORM_ENABLED=false`, `CONTACT_DELIVERY_ENABLED=false`. Four content pages prerender; contact API remains dynamic. |
 | `node --test tests/*.test.mjs` | **95 passed, 0 failed:** 90 contact cases and five site/context cases. All provider calls mocked; no emails or activation requests. Isolated enabled-path test setup restores settings afterward. |
-| `git diff --check` and initial `git diff --cached --check` | Passed. Initial index empty; LF/CRLF notices are not failures. Final staged check must also pass. |
+| `git diff --check`, `git diff --cached --check`, and `git diff HEAD^ HEAD --check` | Passed, including the final staged candidate and committed diff. LF/CRLF notices are not failures. |
 | Source/assets/dependencies preservation | Protected paths have no diff against fetched `origin/main`; unchanged PDF hash confirmed. |
 
 No aggregate `npm test` script exists; both existing test files were included. No tests or dependencies were added. These are local automated results, not hosted/browser acceptance. Prior artifact/HTTP/audit results in 3B.5 remain historical and were not rerun here.
 
 ## 4. New staging deployment evidence
 
-Pending the authorized candidate commit and push. Record the exact pushed SHA, deploy ID, protected branch URL, immutable permalink, build context, branch, status, timestamps, and read-only evidence source here after Netlify completes. Verify `commit_ref` exactly equals the pushed SHA and that the published production deploy remains unchanged. Do not infer deployment success from the previous deployment or an authentication response.
+Verified through the connected Netlify service on 2026-11-12, with final project inspection at approximately 15:40:55 UTC (21:10:55 IST). `open-deployments` identified the newly triggered deployment; site-scoped `get-deploy-for-site` confirmed its exact revision and final state. `get-project` confirmed the published production deploy and SSO protection remained unchanged.
+
+| Evidence | Observed value |
+| --- | --- |
+| Project | `saifkhans` (`17195066-3fe2-4b06-9c06-515353658398`) |
+| Deploy ID | `6af5ddc231b6df842cf2ee75` |
+| Branch | `main` |
+| Build context | `branch-deploy` |
+| Status | `ready` |
+| Plugin state / deploy error | `success` / `null` |
+| Exact deployed `commit_ref` | `4108337fc36c37f929964ce155db1f8e922707bd` |
+| Commit | [Release candidate on GitHub](https://github.com/iamsaifkhan25/Portfolio/commit/4108337fc36c37f929964ce155db1f8e922707bd) |
+| Protected staging URL | [main branch deployment](https://main--saifkhans.netlify.app/) |
+| Immutable deploy permalink | [This candidate deployment](https://6af5ddc231b6df842cf2ee75--saifkhans.netlify.app/) |
+| Deploy details | [Netlify deployment record](https://app.netlify.com/sites/17195066-3fe2-4b06-9c06-515353658398/deploys/6af5ddc231b6df842cf2ee75) |
+| Created / last updated | `2026-11-12T15:39:46.370Z` / `2026-11-12T15:40:24.238Z` |
+| Reported deploy time | 27 seconds |
+| Trigger / framework | Git-triggered (`manual_deploy=false`) / `next` |
+| Production deploy after staging completion | Unchanged: `6af5c667016e494f42077644`, `ready`; previously verified `master`, `production`, SHA `0da2e282313a890f4d17c3a2b9fbd0b4a3c0af91` |
+| Visitor protection after staging completion | Team SSO required for `non_production`; unchanged. |
+
+The remote pushed SHA and Netlify `commit_ref` match exactly. No deployment discrepancy was observed. A branch deploy's `published_at` is `null`; the successful result is its explicit `ready` state, branch/context, URLs, exact SHA, and plugin success, not a production-publication claim.
+
+This post-deploy evidence update is intentionally left as the sole unstaged local change for owner review. The deployed RC already includes the reviewed implementation, tests, prior milestone documentation, and the pre-deploy version of this report. No second commit, amend, or push was made after deployment verification; the tested/deployed SHA remains fixed.
 
 ## 5. Pending authenticated acceptance
 

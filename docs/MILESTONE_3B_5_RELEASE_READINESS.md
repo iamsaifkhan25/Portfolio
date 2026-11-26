@@ -1,5 +1,7 @@
 # Milestone 3B.5: Final quality assurance and release readiness
 
+> Configuration update (2026-11-26): This is a historical milestone record. Its unset-means-disabled presentation instructions and old relay procedures are superseded by [the contact default-state fix](CONTACT_DEFAULT_STATE_FIX.md). Unset or exact `true` now shows the Netlify form; `false` and all other explicit values disable it. Production requires verified delivery and owner approval to enable, or explicit `NEXT_PUBLIC_CONTACT_FORM_ENABLED=false` in Netlify's production build context. `/api/contact` remains retired; do not follow historical FormSubmit activation steps.
+
 Reviewed on 2026-11-12 in `C:\Dev\Portfolio`, on `main`.
 
 ## 1. Executive quality assessment

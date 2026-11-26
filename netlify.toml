@@ -1,0 +1,12 @@
+"$schema" = "https://open-api.netlify.com/netlify.schema.json"
+
+# Keep contact presentation disabled outside production and main staging builds.
+[build.environment]
+  NEXT_PUBLIC_CONTACT_FORM_ENABLED = "false"
+
+[context.production.environment]
+  NEXT_PUBLIC_CONTACT_FORM_ENABLED = "true"
+  NEXT_PUBLIC_CONTACT_DELIVERY_VERIFIED = "true"
+
+[context.main.environment]
+  NEXT_PUBLIC_CONTACT_FORM_ENABLED = "true"
