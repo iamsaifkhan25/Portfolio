@@ -81,9 +81,12 @@
   border-bottom: var(--border-separator);
   font-size: var(--type-metadata-size);
   line-height: var(--leading-prose);
-  color: var(--color-body);
+  color: var(--color-muted);
 }
 .form { display: grid; gap: var(--space-4); min-width: 0; }
+.failure { display: grid; gap: var(--space-4); min-width: 0; }
+.failure p { overflow-wrap: anywhere; }
+.fallbackActions { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .field { display: grid; gap: var(--space-2); min-width: 0; }
 .field label {
   font-size: 1rem;
@@ -118,7 +121,7 @@ textarea.control { resize: vertical; min-height: 8rem; }
 
 @media (min-width: 64rem) {
   .layout {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
     gap: var(--space-12);
     align-items: start;
   }

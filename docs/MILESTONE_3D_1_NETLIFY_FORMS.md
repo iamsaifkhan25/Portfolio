@@ -41,10 +41,10 @@ Netlify's built-in filtering and the honeypot are the spam protection for this m
 
 | Context | `NEXT_PUBLIC_CONTACT_FORM_ENABLED` | `CONTACT_DELIVERY_ENABLED` |
 | --- | --- | --- |
-| Production | Unset or `false`; retain `false` in owner-controlled settings | Keep unset or `false` |
-| Staging `main` | Explicit `true` only for owner-authorized testing | Keep unset or `false` |
+| Production | Explicit `false` until delivery is verified and enabling is owner-approved | Keep unset or `false` |
+| Staging `main` | Unset or exact `true` shows the form; Netlify `main` explicitly uses `true` | Keep unset or `false` |
 
-Only the exact string `true` renders the form. The public switch is compiled into the build, so changing it requires rebuilding. The last local production artifact was built with the form disabled. No environment file or hosted setting was changed.
+Current configuration semantics (updated by the default-state fix): unset or exact `true` renders the form; exact `false` and every other explicit value disable it. The public switch is compiled into the build, so changing it requires restarting development or rebuilding production. Before releasing to `master`, the owner must verify real delivery and approve enabling, or explicitly configure `NEXT_PUBLIC_CONTACT_FORM_ENABLED=false` in Netlify's production build context. The existing `netlify.toml` build default remains `false`. The historical verification results below describe their original revision; see [the default-state verification](CONTACT_DEFAULT_STATE_FIX.md) for the current checks. No environment file or hosted setting was changed by this fix.
 
 The switch controls presentation, not access to Netlify's form processor. The static definition remains present in both builds so it can be registered before visitors see the form. Hiding the UI does not revoke a previously registered Netlify form.
 
